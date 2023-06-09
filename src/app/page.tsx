@@ -1,3 +1,5 @@
+import AiTalker from "@/components/AiTalker";
+
 export default function Home() {
-    return <p>Hello World!</p>;
+    return <AiTalker />;
 }
