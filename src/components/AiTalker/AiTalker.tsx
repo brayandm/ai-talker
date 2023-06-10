@@ -1,15 +1,43 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef, useState, ChangeEvent } from "react";
+import AWS from "aws-sdk";
+import ChattyKathy from "./lib";
 
 interface AiTalkerProps {
     token: string;
+    accessKey: string;
+    secretKey: string;
 }
 
-function AiTalker({ token }: AiTalkerProps) {
+function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
     const textRef = useRef<HTMLParagraphElement>(null);
 
-    useEffect(() => {
+    const [text, setText] = useState("");
+
+    const handleTextChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+        setText(event.target.value);
+    };
+
+    const handleButtonClick = () => {
+        if (textRef.current) {
+            textRef.current.textContent = "";
+        }
+
+        var awsCredentials = new AWS.Credentials(accessKey, secretKey);
+        var settings = {
+            awsCredentials: awsCredentials,
+            awsRegion: "us-east-1",
+            pollyEngine: "neural",
+            pollyLanguageCode: "es-ES",
+            pollyVoiceId: "Lucia",
+            cacheSpeech: true,
+        };
+
+        var kathy = ChattyKathy(settings);
+
+        var chunk = "";
+
         const chatGpt = async () => {
             const response = await fetch(
                 "https://api.openai.com/v1/chat/completions",
@@ -24,7 +52,7 @@ function AiTalker({ token }: AiTalkerProps) {
                         messages: [
                             {
                                 role: "user",
-                                content: "Hola, ¿cómo estás?",
+                                content: text,
                             },
                         ],
                         stream: true,
@@ -52,8 +80,34 @@ function AiTalker({ token }: AiTalkerProps) {
                     const json = JSON.parse(data.substring(6));
                     console.log(json.choices[0].delta.content);
                     if (textRef.current && json.choices[0].delta.content) {
-                        textRef.current.textContent +=
-                            json.choices[0].delta.content;
+                        const content = json.choices[0].delta.content as string;
+
+                        textRef.current.textContent += content;
+
+                        const symbols = [".", "?", "!"];
+
+                        let isSplited = false;
+
+                        for (let i = 0; i < content.length; i++) {
+                            if (symbols.includes(content[i])) {
+                                const firstPart = content.substring(0, i + 1);
+                                const secondPart = content.substring(i + 1);
+
+                                chunk += firstPart;
+
+                                kathy.Speak(chunk);
+
+                                chunk = secondPart;
+
+                                isSplited = true;
+
+                                break;
+                            }
+                        }
+
+                        if (!isSplited) {
+                            chunk += content;
+                        }
                     }
                 });
                 if (dataDone) break;
@@ -61,10 +115,23 @@ function AiTalker({ token }: AiTalkerProps) {
         };
 
         chatGpt();
-    }, [token]);
+
+        kathy.Speak(chunk);
+
+        setText("");
+    };
 
     return (
         <div>
+            <div>
+                <textarea
+                    value={text}
+                    onChange={handleTextChange}
+                    rows={4}
+                    cols={50}
+                />
+                <button onClick={handleButtonClick}>Enviar</button>
+            </div>
             <p ref={textRef} />
         </div>
     );
