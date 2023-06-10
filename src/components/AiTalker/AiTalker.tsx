@@ -28,7 +28,7 @@ function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
         var settings = {
             awsCredentials: awsCredentials,
             awsRegion: "us-east-1",
-            pollyEngine: "neural",
+            pollyEngine: "standard",
             pollyLanguageCode: "es-ES",
             pollyVoiceId: "Lucia",
             cacheSpeech: true,
@@ -84,7 +84,7 @@ function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
 
                         textRef.current.textContent += content;
 
-                        const symbols = [",", ".", "?", "!"];
+                        const symbols = [".", "?", "!"];
 
                         let isSplited = false;
 
@@ -118,6 +118,8 @@ function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
         };
 
         chatGpt();
+
+        kathy.ForgetCachedSpeech();
 
         setText("");
     };
