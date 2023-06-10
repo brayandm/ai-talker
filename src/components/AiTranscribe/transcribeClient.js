@@ -8,13 +8,11 @@ This file handles the transcription of speech to text using AWS Transcribe
 
 */
 // snippet-start:[transcribeClient.JavaScript.streaming.createclientv3]
-import { CognitoIdentityClient } from "@aws-sdk/client-cognito-identity";
-import { fromCognitoIdentityPool } from "@aws-sdk/credential-provider-cognito-identity";
 import { TranscribeStreamingClient } from "@aws-sdk/client-transcribe-streaming";
 import MicrophoneStream from "microphone-stream";
 import { StartStreamTranscriptionCommand } from "@aws-sdk/client-transcribe-streaming";
 import { Buffer } from "buffer";
-import * as awsID from "./awsID.js";
+import AWS from "aws-sdk";
 
 const SAMPLE_RATE = 44100;
 let microphoneStream = undefined;
@@ -46,16 +44,16 @@ export const stopRecording = function () {
 
 const createTranscribeClient = () => {
     transcribeClient = new TranscribeStreamingClient({
-        region: awsID.REGION,
-        credentials: fromCognitoIdentityPool({
-            client: new CognitoIdentityClient({ region: awsID.REGION }),
-            identityPoolId: awsID.IDENTITY_POOL_ID,
-        }),
+        region: "us-east-1",
+        credentials: new AWS.Credentials(
+            "AKIA5ZATZXZVDNR767FQ",
+            "A7qHay9tuGd//nyDzzMErqFP+lSiIEd/o+yAyR5Y"
+        ),
     });
 };
 
 const createMicrophoneStream = async () => {
-    microphoneStream = new MicrophoneStream.default();
+    microphoneStream = new MicrophoneStream();
     microphoneStream.setStream(
         await window.navigator.mediaDevices.getUserMedia({
             video: false,
@@ -98,7 +96,7 @@ const getAudioStream = async function* () {
 };
 
 const encodePCMChunk = (chunk) => {
-    const input = MicrophoneStream.default.toRaw(chunk);
+    const input = MicrophoneStream.toRaw(chunk);
     let offset = 0;
     const buffer = new ArrayBuffer(input.length * 2);
     const view = new DataView(buffer);
