@@ -84,7 +84,7 @@ function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
 
                         textRef.current.textContent += content;
 
-                        const symbols = [".", "?", "!"];
+                        const symbols = [",", ".", "?", "!"];
 
                         let isSplited = false;
 
@@ -110,13 +110,14 @@ function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
                         }
                     }
                 });
-                if (dataDone) break;
+                if (dataDone) {
+                    kathy.Speak(chunk);
+                    break;
+                }
             }
         };
 
         chatGpt();
-
-        kathy.Speak(chunk);
 
         setText("");
     };
