@@ -12,8 +12,11 @@ interface AiTranscribeProps {
 function AiTranscribe({ accessKey, secretKey }: AiTranscribeProps) {
     const textRef = useRef<HTMLParagraphElement>(null);
 
-    const onTranscriptionDataReceived = (data: any) => {
+    const onTranscriptionDataReceived = (data: string) => {
         console.log(data);
+        if (textRef.current) {
+            textRef.current.textContent += data;
+        }
     };
 
     const handleButtonClick = async () => {
