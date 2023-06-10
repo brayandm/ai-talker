@@ -12,22 +12,21 @@ import { TranscribeStreamingClient } from "@aws-sdk/client-transcribe-streaming"
 import MicrophoneStream from "microphone-stream";
 import { StartStreamTranscriptionCommand } from "@aws-sdk/client-transcribe-streaming";
 import { Buffer } from "buffer";
-import AWS from "aws-sdk";
 
 const SAMPLE_RATE = 44100;
 let microphoneStream = undefined;
 let transcribeClient = undefined;
 
-export const startRecording = async (language, callback) => {
-    if (!language) {
+export const startRecording = async (settings, callback) => {
+    if (!settings.language) {
         return false;
     }
     if (microphoneStream || transcribeClient) {
         stopRecording();
     }
-    createTranscribeClient();
+    createTranscribeClient(settings);
     createMicrophoneStream();
-    await startStreaming(language, callback);
+    await startStreaming(settings.language, callback);
 };
 
 export const stopRecording = function () {
@@ -42,13 +41,10 @@ export const stopRecording = function () {
     }
 };
 
-const createTranscribeClient = () => {
+const createTranscribeClient = (settings) => {
     transcribeClient = new TranscribeStreamingClient({
-        region: "us-east-1",
-        credentials: new AWS.Credentials(
-            "AKIA5ZATZXZVDNR767FQ",
-            "A7qHay9tuGd//nyDzzMErqFP+lSiIEd/o+yAyR5Y"
-        ),
+        region: settings.region,
+        credentials: settings.credentials,
     });
 };
 

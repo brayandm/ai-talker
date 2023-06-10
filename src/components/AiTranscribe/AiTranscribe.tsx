@@ -4,6 +4,8 @@ import { useRef } from "react";
 
 import * as TranscribeClient from "./transcribeClient";
 
+import AWS from "aws-sdk";
+
 interface AiTranscribeProps {
     accessKey: string;
     secretKey: string;
@@ -20,7 +22,14 @@ function AiTranscribe({ accessKey, secretKey }: AiTranscribeProps) {
     };
 
     const handleButtonClick = async () => {
-        TranscribeClient.startRecording("es-US", onTranscriptionDataReceived);
+        TranscribeClient.startRecording(
+            {
+                language: "es-US",
+                region: "us-east-1",
+                credentials: new AWS.Credentials(accessKey, secretKey),
+            },
+            onTranscriptionDataReceived
+        );
     };
 
     const handleStop = async () => {
