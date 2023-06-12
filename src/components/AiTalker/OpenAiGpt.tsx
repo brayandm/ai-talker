@@ -7,7 +7,7 @@ class OpenAiGpt {
         this.settings = settings;
     }
 
-    callGpt(
+    async callGpt(
         messages: { role: string; content: string }[],
         callback: (text: string) => void,
         onFinish: () => void
@@ -58,7 +58,7 @@ class OpenAiGpt {
             }
         };
 
-        gpt();
+        await gpt();
     }
 }
 
