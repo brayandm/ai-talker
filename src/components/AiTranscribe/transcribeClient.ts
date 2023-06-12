@@ -57,7 +57,7 @@ class AWSTrascribe {
     stopRecording() {
         if (this.microphoneStream) {
             this.microphoneStream.stop();
-            this.microphoneStream.destroy();
+            (this.microphoneStream as any).destroy();
             this.microphoneStream = undefined;
         }
         if (this.transcribeClient) {
@@ -95,6 +95,7 @@ class AWSTrascribe {
             }
         }
     }
+
     async *getAudioStream() {
         for await (const chunk of this
             .microphoneStream as unknown as Buffer[]) {
