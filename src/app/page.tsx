@@ -1,5 +1,5 @@
-import AiTalker from "@/components/AiTalker";
-import AiSpeaker from "@/components/AiSpeaker";
+// import AiTalker from "@/components/AiTalker";
+// import AiSpeaker from "@/components/AiSpeaker";
 import AiTranscribe from "@/components/AiTranscribe";
 
 export default function Home() {
