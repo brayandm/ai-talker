@@ -84,7 +84,7 @@ const startStreaming = async (
 };
 
 const getAudioStream = async function* () {
-    for await (const chunk of microphoneStream as any) {
+    for await (const chunk of microphoneStream as unknown as Buffer[]) {
         if (chunk.length <= SAMPLE_RATE) {
             yield {
                 AudioEvent: {
