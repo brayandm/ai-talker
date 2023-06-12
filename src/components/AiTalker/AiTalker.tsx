@@ -29,7 +29,7 @@ function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
         var settings = {
             awsCredentials: awsCredentials,
             awsRegion: "us-east-1",
-            pollyEngine: "standard",
+            pollyEngine: "neural",
             pollyLanguageCode: "es-ES",
             pollyVoiceId: "Lucia",
             cacheSpeech: false,

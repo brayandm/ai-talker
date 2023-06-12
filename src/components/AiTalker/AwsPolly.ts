@@ -56,7 +56,7 @@ class AwsPolly {
 
         const onSpeak = (message: string) => {
             const symbols = [".", "?", "!"];
-            const limChar = 50;
+            const limChar = 200;
 
             let isSplited = false;
 
