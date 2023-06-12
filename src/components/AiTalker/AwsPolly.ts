@@ -63,7 +63,7 @@ class AwsPolly {
     }
 
     forgetCachedSpeech() {
-        localStorage.removeItem("chattyKathyDictionary");
+        localStorage.removeItem("AwsPollyDictionary");
     }
 
     // Validate settings
@@ -167,7 +167,7 @@ class AwsPolly {
             AudioStream: JSON.stringify(audioStream),
         };
         var localPlaylist = JSON.parse(
-            localStorage.getItem("chattyKathyDictionary") ?? "[]"
+            localStorage.getItem("AwsPollyDictionary") ?? "[]"
         );
 
         if (localPlaylist === null) {
@@ -177,14 +177,14 @@ class AwsPolly {
             localPlaylist.push(record);
         }
         localStorage.setItem(
-            "chattyKathyDictionary",
+            "AwsPollyDictionary",
             JSON.stringify(localPlaylist)
         );
     }
 
     // Check local cache for audio clip
     private requestSpeechFromLocalCache(message: string) {
-        var audioDictionary = localStorage.getItem("chattyKathyDictionary");
+        var audioDictionary = localStorage.getItem("AwsPollyDictionary");
         if (audioDictionary === null) {
             return null;
         }
