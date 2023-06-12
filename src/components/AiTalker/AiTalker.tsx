@@ -3,6 +3,7 @@
 import { useRef, useState, ChangeEvent } from "react";
 import AWS from "aws-sdk";
 import AwsPolly from "./AwsPolly";
+import OpenAiGpt from "./OpenAiGpt";
 
 interface AiTalkerProps {
     token: string;
@@ -38,86 +39,48 @@ function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
 
         var chunk = "";
 
-        const chatGpt = async () => {
-            const response = await fetch(
-                "https://api.openai.com/v1/chat/completions",
-                {
-                    method: "POST",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        model: "gpt-3.5-turbo",
-                        messages: [
-                            {
-                                role: "user",
-                                content: text,
-                            },
-                        ],
-                        stream: true,
-                    }),
-                }
-            );
-            const reader = response.body
-                ?.pipeThrough(new TextDecoderStream())
-                .getReader();
-            if (!reader) return;
-            // eslint-disable-next-line no-constant-condition
-            while (true) {
-                // eslint-disable-next-line no-await-in-loop
-                const { value, done } = await reader.read();
-                if (done) break;
-                let dataDone = false;
-                const arr = value.split("\n");
-                arr.forEach((data) => {
-                    if (data.length === 0) return; // ignore empty message
-                    if (data.startsWith(":")) return; // ignore sse comment message
-                    if (data === "data: [DONE]") {
-                        dataDone = true;
-                        return;
-                    }
-                    const json = JSON.parse(data.substring(6));
-                    console.log(json.choices[0].delta.content);
-                    if (textRef.current && json.choices[0].delta.content) {
-                        const content = json.choices[0].delta.content as string;
+        const callback = (text: string) => {
+            const content = text as string;
 
-                        textRef.current.textContent += content;
+            if (textRef.current) textRef.current.textContent += content;
 
-                        const symbols = [".", "?", "!"];
+            const symbols = [".", "?", "!"];
 
-                        let isSplited = false;
+            let isSplited = false;
 
-                        for (let i = 0; i < content.length; i++) {
-                            if (symbols.includes(content[i])) {
-                                const firstPart = content.substring(0, i + 1);
-                                const secondPart = content.substring(i + 1);
+            for (let i = 0; i < content.length; i++) {
+                if (symbols.includes(content[i])) {
+                    const firstPart = content.substring(0, i + 1);
+                    const secondPart = content.substring(i + 1);
 
-                                chunk += firstPart;
+                    chunk += firstPart;
 
-                                kathy.speak(chunk);
-
-                                chunk = secondPart;
-
-                                isSplited = true;
-
-                                break;
-                            }
-                        }
-
-                        if (!isSplited) {
-                            chunk += content;
-                        }
-                    }
-                });
-                if (dataDone) {
                     kathy.speak(chunk);
+
+                    chunk = secondPart;
+
+                    isSplited = true;
+
                     break;
                 }
             }
+
+            if (!isSplited) {
+                chunk += content;
+            }
         };
 
-        chatGpt();
+        const onFinish = () => {
+            kathy.speak(chunk);
+        };
+
+        const openAiGpt = new OpenAiGpt({ authorization: token });
+
+        openAiGpt.callGpt(
+            [{ role: "user", content: text }],
+            callback,
+            onFinish
+        );
 
         kathy.forgetCachedSpeech();
 

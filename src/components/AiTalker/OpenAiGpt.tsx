@@ -47,7 +47,6 @@ class OpenAiGpt {
                         return;
                     }
                     const json = JSON.parse(data.substring(6));
-                    console.log(json.choices[0].delta.content);
                     if (json.choices[0].delta.content) {
                         callback(json.choices[0].delta.content);
                     }
@@ -62,3 +61,5 @@ class OpenAiGpt {
         gpt();
     }
 }
+
+export default OpenAiGpt;
