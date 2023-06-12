@@ -101,11 +101,10 @@ class AwsPolly {
 
     // Speak the message
     say(message: string) {
-        const self = this;
-        return new Promise(function (successCallback, errorCallback) {
-            self.isSpeaking = true;
-            self.getAudio(message)
-                .then(self.playAudio.bind(self))
+        return new Promise((successCallback, errorCallback) => {
+            this.isSpeaking = true;
+            this.getAudio(message)
+                .then(this.playAudio.bind(this))
                 .then(successCallback);
         });
     }
@@ -134,23 +133,21 @@ class AwsPolly {
 
     // Make request to Amazon polly
     requestSpeechFromAWS(message: string) {
-        const self = this;
-
-        return new Promise(function (successCallback, errorCallback) {
+        return new Promise((successCallback, errorCallback) => {
             var polly = new AWS.Polly();
             var params = {
                 OutputFormat: "mp3",
-                Engine: self.settings.pollyEngine,
-                LanguageCode: self.settings.pollyLanguageCode,
+                Engine: this.settings.pollyEngine,
+                LanguageCode: this.settings.pollyLanguageCode,
                 Text: `<speak>${message}</speak>`,
-                VoiceId: self.settings.pollyVoiceId,
+                VoiceId: this.settings.pollyVoiceId,
                 TextType: "ssml",
             };
-            polly.synthesizeSpeech(params, function (error, data) {
+            polly.synthesizeSpeech(params, (error, data) => {
                 if (error) {
                     errorCallback(error);
                 } else {
-                    self.saveSpeechToLocalCache(message, data.AudioStream);
+                    this.saveSpeechToLocalCache(message, data.AudioStream);
                     successCallback(data.AudioStream);
                 }
             });
@@ -201,20 +198,18 @@ class AwsPolly {
 
     // Play audio
     playAudio(audioStream) {
-        const self = this;
-
-        return new Promise(function (success, error) {
+        return new Promise((success, error) => {
             var uInt8Array = new Uint8Array(audioStream);
             var arrayBuffer = uInt8Array.buffer;
             var blob = new Blob([arrayBuffer]);
 
             var url = URL.createObjectURL(blob);
-            self.audioElement.src = url;
-            self.audioElement.addEventListener("ended", function () {
-                self.isSpeaking = false;
+            this.audioElement.src = url;
+            this.audioElement.addEventListener("ended", () => {
+                this.isSpeaking = false;
                 success();
             });
-            self.audioElement.play();
+            this.audioElement.play();
         });
     }
 }
