@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 
-import * as TranscribeClient from "./transcribeClient";
+import AWSTrascribe from "./transcribeClient";
 
 import AWS from "aws-sdk";
 
@@ -20,6 +20,12 @@ function AiTranscribe({ accessKey, secretKey }: AiTranscribeProps) {
             textRef.current.textContent += data;
         }
     };
+
+    const TranscribeClient = new AWSTrascribe({
+        language: "es-US",
+        region: "us-east-1",
+        credentials: new AWS.Credentials(accessKey, secretKey),
+    });
 
     const handleButtonClick = async () => {
         TranscribeClient.startRecording(
