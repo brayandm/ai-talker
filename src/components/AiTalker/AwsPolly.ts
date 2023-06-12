@@ -160,7 +160,7 @@ class AwsPolly {
     // Save to local cache
     private saveSpeechToLocalCache(
         message: string,
-        audioStream: SdkStream<Blob> | undefined
+        audioStream: SdkStream<any> | undefined
     ) {
         var record = {
             Message: message,
@@ -205,7 +205,7 @@ class AwsPolly {
     }
 
     // Play audio
-    private playAudio(audioStream: SdkStream<Blob>) {
+    private playAudio(audioStream: SdkStream<any> | undefined) {
         return new Promise(async (success, error) => {
             var arrayBuffer = await audioStream.transformToByteArray();
             var blob = new Blob([arrayBuffer]);
