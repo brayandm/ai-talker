@@ -2,7 +2,8 @@
 
 import { useRef, useState, ChangeEvent } from "react";
 import AWS from "aws-sdk";
-import ChattyKathy from "./lib";
+// import ChattyKathy from "./lib";
+import AwsPolly from "./AwsPolly";
 
 interface AiTalkerProps {
     token: string;
@@ -34,7 +35,7 @@ function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
             cacheSpeech: true,
         };
 
-        var kathy = ChattyKathy(settings);
+        var kathy = new AwsPolly(settings);
 
         var chunk = "";
 

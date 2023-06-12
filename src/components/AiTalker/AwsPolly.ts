@@ -10,171 +10,61 @@ type AwsPollySettings = {
     cacheSpeech: boolean;
 };
 
-export default function ChattyKathy(settings: AwsPollySettings) {
-    settings = getValidatedSettings(settings);
+class AwsPolly {
+    settings: AwsPollySettings;
+    audioElement: HTMLAudioElement;
+    isSpeaking: boolean;
 
-    // Add audio node to html
-    var elementId = "audioElement" + new Date().valueOf().toString();
-    var audioElement = document.createElement("audio");
-    audioElement.setAttribute("id", elementId);
-    document.body.appendChild(audioElement);
+    playlist: string[];
 
-    var isSpeaking = false;
+    constructor(settings: AwsPollySettings) {
+        // Validate settings
+        this.settings = this.getValidatedSettings(settings);
 
-    AWS.config.credentials = settings.awsCredentials;
-    AWS.config.region = settings.awsRegion;
+        AWS.config.credentials = settings.awsCredentials;
+        AWS.config.region = settings.awsRegion;
 
-    var kathy = {
-        self: this,
-        playlist: [],
-        // Speak
-        Speak: function (msg: string) {
-            if (isSpeaking) {
-                this.playlist.push(msg);
-            } else {
-                say(msg).then(sayNext);
-            }
-        },
+        // Add audio node to html
+        var elementId = "audioElement" + new Date().valueOf().toString();
+        this.audioElement = document.createElement("audio");
+        this.audioElement.setAttribute("id", elementId);
+        document.body.appendChild(this.audioElement);
+        this.isSpeaking = false;
 
-        // Quit speaking, clear playlist
-        ShutUp: function () {
-            shutUp();
-        },
-        // Speak & return promise
-        SpeakWithPromise: function (msg: string) {
-            return say(msg);
-        },
+        // Create playlist
+        this.playlist = [];
 
-        IsSpeaking: function () {
-            return isSpeaking;
-        },
-
-        ForgetCachedSpeech: function () {
-            localStorage.removeItem("chattyKathyDictionary");
-        },
-    };
-
-    // Quit talking
-    function shutUp() {
-        isSpeaking = false;
-        audioElement.pause();
-        kathy.playlist = [];
+        console.log("Playing audio", this.audioElement);
     }
 
-    // Speak the message
-    function say(message: string) {
-        return new Promise(function (successCallback, errorCallback) {
-            isSpeaking = true;
-            getAudio(message).then(playAudio).then(successCallback);
-        });
-    }
-
-    // Say next
-    function sayNext() {
-        var list = kathy.playlist;
-        if (list.length > 0) {
-            var msg = list[0];
-            list.splice(0, 1);
-            say(msg).then(sayNext);
-        }
-    }
-
-    // Get Audio
-    function getAudio(message: string) {
-        if (
-            settings.cacheSpeech === false ||
-            requestSpeechFromLocalCache(message) === null
-        ) {
-            return requestSpeechFromAWS(message);
+    // Speak
+    Speak(msg: string): void {
+        if (this.isSpeaking) {
+            this.playlist.push(msg);
         } else {
-            return requestSpeechFromLocalCache(message);
+            this.say(msg).then(this.sayNext.bind(this));
         }
     }
 
-    // Make request to Amazon polly
-    function requestSpeechFromAWS(message: string) {
-        return new Promise(function (successCallback, errorCallback) {
-            var polly = new AWS.Polly();
-            var params = {
-                OutputFormat: "mp3",
-                Engine: settings.pollyEngine,
-                LanguageCode: settings.pollyLanguageCode,
-                Text: `<speak>${message}</speak>`,
-                VoiceId: settings.pollyVoiceId,
-                TextType: "ssml",
-            };
-            polly.synthesizeSpeech(params, function (error, data) {
-                if (error) {
-                    errorCallback(error);
-                } else {
-                    saveSpeechToLocalCache(message, data.AudioStream);
-                    successCallback(data.AudioStream);
-                }
-            });
-        });
+    // Quit speaking, clear playlist
+    ShutUp() {
+        this.shutUp();
+    }
+    // Speak & return promise
+    SpeakWithPromise(msg: string) {
+        return this.say(msg);
     }
 
-    // Save to local cache
-    function saveSpeechToLocalCache(message: string, audioStream) {
-        var record = {
-            Message: message,
-            AudioStream: JSON.stringify(audioStream),
-        };
-        var localPlaylist = JSON.parse(
-            localStorage.getItem("chattyKathyDictionary")
-        );
-
-        if (localPlaylist === null) {
-            localPlaylist = [];
-            localPlaylist.push(record);
-        } else {
-            localPlaylist.push(record);
-        }
-        localStorage.setItem(
-            "chattyKathyDictionary",
-            JSON.stringify(localPlaylist)
-        );
+    IsSpeaking() {
+        return this.isSpeaking;
     }
 
-    // Check local cache for audio clip
-    function requestSpeechFromLocalCache(message: string) {
-        var audioDictionary = localStorage.getItem("chattyKathyDictionary");
-        if (audioDictionary === null) {
-            return null;
-        }
-        var audioStreamArray = JSON.parse(audioDictionary);
-        var audioStream = audioStreamArray.filter(function (record) {
-            return record.Message === message;
-        })[0];
-
-        if (audioStream === null || typeof audioStream === "undefined") {
-            return null;
-        } else {
-            return new Promise(function (successCallback, errorCallback) {
-                successCallback(JSON.parse(audioStream.AudioStream).data);
-            });
-        }
-    }
-
-    // Play audio
-    function playAudio(audioStream) {
-        return new Promise(function (success, error) {
-            var uInt8Array = new Uint8Array(audioStream);
-            var arrayBuffer = uInt8Array.buffer;
-            var blob = new Blob([arrayBuffer]);
-
-            var url = URL.createObjectURL(blob);
-            audioElement.src = url;
-            audioElement.addEventListener("ended", function () {
-                isSpeaking = false;
-                success();
-            });
-            audioElement.play();
-        });
+    ForgetCachedSpeech() {
+        localStorage.removeItem("chattyKathyDictionary");
     }
 
     // Validate settings
-    function getValidatedSettings(settings: AwsPollySettings) {
+    getValidatedSettings(settings: AwsPollySettings) {
         if (typeof settings === "undefined") {
             throw "Settings must be provided to ChattyKathy's constructor";
         }
@@ -202,5 +92,131 @@ export default function ChattyKathy(settings: AwsPollySettings) {
         return settings;
     }
 
-    return kathy;
+    // Quit talking
+    shutUp() {
+        this.isSpeaking = false;
+        this.audioElement.pause();
+        this.playlist = [];
+    }
+
+    // Speak the message
+    say(message: string) {
+        const self = this;
+        return new Promise(function (successCallback, errorCallback) {
+            self.isSpeaking = true;
+            self.getAudio(message)
+                .then(self.playAudio.bind(self))
+                .then(successCallback);
+        });
+    }
+
+    // Say next
+    sayNext() {
+        var list = this.playlist;
+        if (list.length > 0) {
+            var msg = list[0];
+            list.splice(0, 1);
+            this.say(msg).then(this.sayNext.bind(this));
+        }
+    }
+
+    // Get Audio
+    getAudio(message: string) {
+        if (
+            this.settings.cacheSpeech === false ||
+            this.requestSpeechFromLocalCache(message) === null
+        ) {
+            return this.requestSpeechFromAWS(message);
+        } else {
+            return this.requestSpeechFromLocalCache(message);
+        }
+    }
+
+    // Make request to Amazon polly
+    requestSpeechFromAWS(message: string) {
+        const self = this;
+
+        return new Promise(function (successCallback, errorCallback) {
+            var polly = new AWS.Polly();
+            var params = {
+                OutputFormat: "mp3",
+                Engine: self.settings.pollyEngine,
+                LanguageCode: self.settings.pollyLanguageCode,
+                Text: `<speak>${message}</speak>`,
+                VoiceId: self.settings.pollyVoiceId,
+                TextType: "ssml",
+            };
+            polly.synthesizeSpeech(params, function (error, data) {
+                if (error) {
+                    errorCallback(error);
+                } else {
+                    self.saveSpeechToLocalCache(message, data.AudioStream);
+                    successCallback(data.AudioStream);
+                }
+            });
+        });
+    }
+
+    // Save to local cache
+    saveSpeechToLocalCache(message: string, audioStream) {
+        var record = {
+            Message: message,
+            AudioStream: JSON.stringify(audioStream),
+        };
+        var localPlaylist = JSON.parse(
+            localStorage.getItem("chattyKathyDictionary")
+        );
+
+        if (localPlaylist === null) {
+            localPlaylist = [];
+            localPlaylist.push(record);
+        } else {
+            localPlaylist.push(record);
+        }
+        localStorage.setItem(
+            "chattyKathyDictionary",
+            JSON.stringify(localPlaylist)
+        );
+    }
+
+    // Check local cache for audio clip
+    requestSpeechFromLocalCache(message: string) {
+        var audioDictionary = localStorage.getItem("chattyKathyDictionary");
+        if (audioDictionary === null) {
+            return null;
+        }
+        var audioStreamArray = JSON.parse(audioDictionary);
+        var audioStream = audioStreamArray.filter(function (record) {
+            return record.Message === message;
+        })[0];
+
+        if (audioStream === null || typeof audioStream === "undefined") {
+            return null;
+        } else {
+            return new Promise(function (successCallback, errorCallback) {
+                successCallback(JSON.parse(audioStream.AudioStream).data);
+            });
+        }
+    }
+
+    // Play audio
+    playAudio(audioStream) {
+        const self = this;
+
+        return new Promise(function (success, error) {
+            var uInt8Array = new Uint8Array(audioStream);
+            var arrayBuffer = uInt8Array.buffer;
+            var blob = new Blob([arrayBuffer]);
+
+            var url = URL.createObjectURL(blob);
+            self.audioElement.src = url;
+            self.audioElement.addEventListener("ended", function () {
+                self.isSpeaking = false;
+                success();
+            });
+            self.audioElement.play();
+        });
+    }
 }
+
+export default AwsPolly;
