@@ -1,23 +1,21 @@
-/* Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-SPDX-License-Identifier: Apache-2.0
-ABOUT THIS NODE.JS EXAMPLE: This example works with the AWS SDK for JavaScript version 3 (v3),
-which is available at https://github.com/aws/aws-sdk-js-v3.
-
-Purpose:
-This file handles the transcription of speech to text using AWS Transcribe
-
-*/
-// snippet-start:[transcribeClient.JavaScript.streaming.createclientv3]
 import { TranscribeStreamingClient } from "@aws-sdk/client-transcribe-streaming";
 import MicrophoneStream from "microphone-stream";
 import { StartStreamTranscriptionCommand } from "@aws-sdk/client-transcribe-streaming";
 import { Buffer } from "buffer";
+import AWS from "aws-sdk";
 
 const SAMPLE_RATE = 44100;
-let microphoneStream = undefined;
-let transcribeClient = undefined;
+let microphoneStream: MicrophoneStream | undefined;
+let transcribeClient: TranscribeStreamingClient | undefined;
 
-export const startRecording = async (settings, callback) => {
+export const startRecording = async (
+    settings: {
+        language: string;
+        region: string;
+        credentials: AWS.Credentials;
+    },
+    callback: (data: string) => void
+) => {
     if (!settings.language) {
         return false;
     }
@@ -41,7 +39,10 @@ export const stopRecording = function () {
     }
 };
 
-const createTranscribeClient = (settings) => {
+const createTranscribeClient = (settings: {
+    region: string;
+    credentials: AWS.Credentials;
+}) => {
     transcribeClient = new TranscribeStreamingClient({
         region: settings.region,
         credentials: settings.credentials,
@@ -58,7 +59,10 @@ const createMicrophoneStream = async () => {
     );
 };
 
-const startStreaming = async (language, callback) => {
+const startStreaming = async (
+    language: string,
+    callback: (data: string) => void
+) => {
     const command = new StartStreamTranscriptionCommand({
         LanguageCode: language,
         MediaEncoding: "pcm",
@@ -80,7 +84,7 @@ const startStreaming = async (language, callback) => {
 };
 
 const getAudioStream = async function* () {
-    for await (const chunk of microphoneStream) {
+    for await (const chunk of microphoneStream as any) {
         if (chunk.length <= SAMPLE_RATE) {
             yield {
                 AudioEvent: {
@@ -91,7 +95,7 @@ const getAudioStream = async function* () {
     }
 };
 
-const encodePCMChunk = (chunk) => {
+const encodePCMChunk = (chunk: Buffer) => {
     const input = MicrophoneStream.toRaw(chunk);
     let offset = 0;
     const buffer = new ArrayBuffer(input.length * 2);
@@ -102,5 +106,3 @@ const encodePCMChunk = (chunk) => {
     }
     return Buffer.from(buffer);
 };
-
-// snippet-end:[transcribeClient.JavaScript.streaming.createclientv3]
