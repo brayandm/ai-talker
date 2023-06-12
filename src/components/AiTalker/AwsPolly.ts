@@ -1,6 +1,16 @@
 import AWS from "aws-sdk";
+import { AwsCredentialIdentity } from "@aws-sdk/types";
 
-export default function ChattyKathy(settings) {
+type AWSPollySettings = {
+    awsCredentials: AwsCredentialIdentity;
+    awsRegion: string;
+    pollyEngine: string;
+    pollyLanguageCode: string;
+    pollyVoiceId: string;
+    cacheSpeech: boolean;
+};
+
+export default function ChattyKathy(settings: AWSPollySettings) {
     settings = getValidatedSettings(settings);
 
     // Add audio node to html
@@ -18,7 +28,7 @@ export default function ChattyKathy(settings) {
         self: this,
         playlist: [],
         // Speak
-        Speak: function (msg) {
+        Speak: function (msg: string) {
             if (isSpeaking) {
                 this.playlist.push(msg);
             } else {
@@ -31,7 +41,7 @@ export default function ChattyKathy(settings) {
             shutUp();
         },
         // Speak & return promise
-        SpeakWithPromise: function (msg) {
+        SpeakWithPromise: function (msg: string) {
             return say(msg);
         },
 
@@ -52,7 +62,7 @@ export default function ChattyKathy(settings) {
     }
 
     // Speak the message
-    function say(message) {
+    function say(message: string) {
         return new Promise(function (successCallback, errorCallback) {
             isSpeaking = true;
             getAudio(message).then(playAudio).then(successCallback);
@@ -70,7 +80,7 @@ export default function ChattyKathy(settings) {
     }
 
     // Get Audio
-    function getAudio(message) {
+    function getAudio(message: string) {
         if (
             settings.cacheSpeech === false ||
             requestSpeechFromLocalCache(message) === null
@@ -82,7 +92,7 @@ export default function ChattyKathy(settings) {
     }
 
     // Make request to Amazon polly
-    function requestSpeechFromAWS(message) {
+    function requestSpeechFromAWS(message: string) {
         return new Promise(function (successCallback, errorCallback) {
             var polly = new AWS.Polly();
             var params = {
@@ -105,7 +115,7 @@ export default function ChattyKathy(settings) {
     }
 
     // Save to local cache
-    function saveSpeechToLocalCache(message, audioStream) {
+    function saveSpeechToLocalCache(message: string, audioStream) {
         var record = {
             Message: message,
             AudioStream: JSON.stringify(audioStream),
@@ -127,7 +137,7 @@ export default function ChattyKathy(settings) {
     }
 
     // Check local cache for audio clip
-    function requestSpeechFromLocalCache(message) {
+    function requestSpeechFromLocalCache(message: string) {
         var audioDictionary = localStorage.getItem("chattyKathyDictionary");
         if (audioDictionary === null) {
             return null;
@@ -164,7 +174,7 @@ export default function ChattyKathy(settings) {
     }
 
     // Validate settings
-    function getValidatedSettings(settings) {
+    function getValidatedSettings(settings: AWSPollySettings) {
         if (typeof settings === "undefined") {
             throw "Settings must be provided to ChattyKathy's constructor";
         }
