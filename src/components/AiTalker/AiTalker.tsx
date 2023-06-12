@@ -37,41 +37,15 @@ function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
 
         var kathy = new AwsPolly(settings);
 
-        var chunk = "";
+        const { onSpeak, onSpeakEnd } = kathy.speakStream();
 
         const callback = (text: string) => {
-            const content = text as string;
-
-            if (textRef.current) textRef.current.textContent += content;
-
-            const symbols = [".", "?", "!"];
-
-            let isSplited = false;
-
-            for (let i = 0; i < content.length; i++) {
-                if (symbols.includes(content[i])) {
-                    const firstPart = content.substring(0, i + 1);
-                    const secondPart = content.substring(i + 1);
-
-                    chunk += firstPart;
-
-                    kathy.speak(chunk);
-
-                    chunk = secondPart;
-
-                    isSplited = true;
-
-                    break;
-                }
-            }
-
-            if (!isSplited) {
-                chunk += content;
-            }
+            if (textRef.current) textRef.current.textContent += text;
+            onSpeak(text);
         };
 
         const onFinish = () => {
-            kathy.speak(chunk);
+            onSpeakEnd();
         };
 
         const openAiGpt = new OpenAiGpt({ authorization: token });

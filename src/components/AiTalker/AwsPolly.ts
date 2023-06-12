@@ -45,6 +45,38 @@ class AwsPolly {
         }
     }
 
+    speakStream() {
+        var chunk = "";
+
+        const onSpeak = (message: string) => {
+            const symbols = [".", "?", "!"];
+
+            let isSplited = false;
+
+            for (let i = 0; i < message.length; i++) {
+                if (symbols.includes(message[i])) {
+                    this.speak(chunk + message.substring(0, i + 1));
+                    chunk = message.substring(i + 1);
+                    isSplited = true;
+                    break;
+                }
+            }
+
+            if (!isSplited) {
+                chunk += message;
+            }
+        };
+
+        const onSpeakEnd = () => {
+            this.speak(chunk);
+        };
+
+        return {
+            onSpeak: onSpeak,
+            onSpeakEnd: onSpeakEnd,
+        };
+    }
+
     // Quit speaking, clear playlist
     shutUp() {
         this.stop();
