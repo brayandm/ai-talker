@@ -6,23 +6,23 @@ import MicrophoneStream from "microphone-stream";
 import { Buffer } from "buffer";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 
-type AWSTrascribeSettings = {
+type AwsTrascribeSettings = {
     language: string;
     region: string;
     credentials: AwsCredentialIdentity;
 };
 
-class AWSTrascribe {
+class AwsTrascribe {
     SAMPLE_RATE = 44100;
     microphoneStream: MicrophoneStream | undefined;
     transcribeClient: TranscribeStreamingClient | undefined;
-    settings: AWSTrascribeSettings;
+    settings: AwsTrascribeSettings;
 
-    constructor(settings: AWSTrascribeSettings) {
+    constructor(settings: AwsTrascribeSettings) {
         this.settings = settings;
     }
 
-    createTranscribeClient(settings: AWSTrascribeSettings) {
+    createTranscribeClient(settings: AwsTrascribeSettings) {
         this.transcribeClient = new TranscribeStreamingClient({
             region: settings.region,
             credentials: settings.credentials,
@@ -119,4 +119,4 @@ class AWSTrascribe {
     }
 }
 
-export default AWSTrascribe;
+export default AwsTrascribe;
