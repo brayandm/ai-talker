@@ -2,8 +2,8 @@
 
 import { useRef, useState, ChangeEvent } from "react";
 import AWS from "aws-sdk";
-import AwsPolly from "./AwsPolly";
-import OpenAiGpt from "./OpenAiGpt";
+import AwsPolly from "./lib/AwsPolly";
+import OpenAiGpt from "./lib/OpenAiGpt";
 
 interface AiTalkerProps {
     token: string;
@@ -37,15 +37,15 @@ function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
 
         var kathy = new AwsPolly(settings);
 
-        const { onSpeak, onSpeakEnd } = kathy.speakStream();
+        const { onStream, onStreamEnd } = kathy.speakStream();
 
         const callback = (text: string) => {
             if (textRef.current) textRef.current.textContent += text;
-            onSpeak(text);
+            onStream(text);
         };
 
         const onFinish = () => {
-            onSpeakEnd();
+            onStreamEnd();
         };
 
         const openAiGpt = new OpenAiGpt({ authorization: token });

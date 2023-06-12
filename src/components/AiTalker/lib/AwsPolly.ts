@@ -54,7 +54,7 @@ class AwsPolly {
     speakStream() {
         var chunk = "";
 
-        const onSpeak = (message: string) => {
+        const onStream = (message: string) => {
             const symbols = [".", "?", "!"];
             const limChar = 200;
 
@@ -77,13 +77,13 @@ class AwsPolly {
             }
         };
 
-        const onSpeakEnd = () => {
+        const onStreamEnd = () => {
             this.speak(chunk, true);
         };
 
         return {
-            onSpeak: onSpeak,
-            onSpeakEnd: onSpeakEnd,
+            onStream: onStream,
+            onStreamEnd: onStreamEnd,
         };
     }
 
