@@ -1,5 +1,6 @@
 import AWS from "aws-sdk";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
+import { AudioStream } from "aws-sdk/clients/polly";
 
 type AwsPollySettings = {
     awsCredentials: AwsCredentialIdentity;
@@ -10,17 +11,20 @@ type AwsPollySettings = {
     cacheSpeech: boolean;
 };
 
+type SpeechCacheRecord = {
+    Message: string;
+    AudioStream: string;
+};
+
 class AwsPolly {
     settings: AwsPollySettings;
     audioElement: HTMLAudioElement;
     isSpeaking: boolean;
-
     playlist: string[];
 
     constructor(settings: AwsPollySettings) {
         // Validate settings
         this.settings = this.getValidatedSettings(settings);
-
         AWS.config.credentials = settings.awsCredentials;
         AWS.config.region = settings.awsRegion;
 
@@ -29,12 +33,10 @@ class AwsPolly {
         this.audioElement = document.createElement("audio");
         this.audioElement.setAttribute("id", elementId);
         document.body.appendChild(this.audioElement);
+
+        // Set up audio player
         this.isSpeaking = false;
-
-        // Create playlist
         this.playlist = [];
-
-        console.log("Playing audio", this.audioElement);
     }
 
     // Speak
@@ -50,6 +52,7 @@ class AwsPolly {
     ShutUp() {
         this.shutUp();
     }
+
     // Speak & return promise
     SpeakWithPromise(msg: string) {
         return this.say(msg);
@@ -104,7 +107,7 @@ class AwsPolly {
         return new Promise((successCallback, errorCallback) => {
             this.isSpeaking = true;
             this.getAudio(message)
-                .then(this.playAudio.bind(this))
+                ?.then(this.playAudio.bind(this))
                 .then(successCallback);
         });
     }
@@ -155,13 +158,16 @@ class AwsPolly {
     }
 
     // Save to local cache
-    saveSpeechToLocalCache(message: string, audioStream) {
+    saveSpeechToLocalCache(
+        message: string,
+        audioStream: AudioStream | undefined
+    ) {
         var record = {
             Message: message,
             AudioStream: JSON.stringify(audioStream),
         };
         var localPlaylist = JSON.parse(
-            localStorage.getItem("chattyKathyDictionary")
+            localStorage.getItem("chattyKathyDictionary") ?? "[]"
         );
 
         if (localPlaylist === null) {
@@ -183,7 +189,9 @@ class AwsPolly {
             return null;
         }
         var audioStreamArray = JSON.parse(audioDictionary);
-        var audioStream = audioStreamArray.filter(function (record) {
+        var audioStream = audioStreamArray.filter(function (
+            record: SpeechCacheRecord
+        ) {
             return record.Message === message;
         })[0];
 
@@ -197,9 +205,9 @@ class AwsPolly {
     }
 
     // Play audio
-    playAudio(audioStream) {
+    playAudio(audioStream: unknown) {
         return new Promise((success, error) => {
-            var uInt8Array = new Uint8Array(audioStream);
+            var uInt8Array = new Uint8Array(audioStream as Buffer);
             var arrayBuffer = uInt8Array.buffer;
             var blob = new Blob([arrayBuffer]);
 
@@ -207,7 +215,7 @@ class AwsPolly {
             this.audioElement.src = url;
             this.audioElement.addEventListener("ended", () => {
                 this.isSpeaking = false;
-                success();
+                success("Success");
             });
             this.audioElement.play();
         });
