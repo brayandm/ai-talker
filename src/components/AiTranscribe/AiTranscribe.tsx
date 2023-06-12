@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 
-import AWSTrascribe from "./transcribeClient";
+import AWSTrascribe from "./AwsTrascribe";
 
 import AWS from "aws-sdk";
 
