@@ -19,7 +19,10 @@ class AwsPolly {
     settings: AwsPollySettings;
     audioElement: HTMLAudioElement;
     isSpeakingNow: boolean;
-    playlist: string[];
+    playlist: {
+        message: string;
+        joinWithPrevious: boolean;
+    }[];
 
     constructor(settings: AwsPollySettings) {
         // Validate settings
@@ -37,9 +40,12 @@ class AwsPolly {
     }
 
     // Speak
-    speak(msg: string): void {
+    speak(msg: string, joinWithPrevious: boolean = false): void {
         if (this.isSpeakingNow) {
-            this.playlist.push(msg);
+            this.playlist.push({
+                message: msg,
+                joinWithPrevious: joinWithPrevious,
+            });
         } else {
             this.say(msg).then(this.sayNext.bind(this));
         }
@@ -55,7 +61,7 @@ class AwsPolly {
 
             for (let i = 0; i < message.length; i++) {
                 if (symbols.includes(message[i])) {
-                    this.speak(chunk + message.substring(0, i + 1));
+                    this.speak(chunk + message.substring(0, i + 1), true);
                     chunk = message.substring(i + 1);
                     isSplited = true;
                     break;
@@ -68,7 +74,7 @@ class AwsPolly {
         };
 
         const onSpeakEnd = () => {
-            this.speak(chunk);
+            this.speak(chunk, true);
         };
 
         return {
@@ -145,7 +151,8 @@ class AwsPolly {
     private sayNext() {
         var list = this.playlist;
         if (list.length > 0) {
-            var msg = list[0];
+            var msg = list[0].message;
+            console.log(list[0]);
             list.splice(0, 1);
             this.say(msg).then(this.sayNext.bind(this));
         }
