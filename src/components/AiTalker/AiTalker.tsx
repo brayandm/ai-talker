@@ -2,7 +2,6 @@
 
 import { useRef, useState, ChangeEvent } from "react";
 import AWS from "aws-sdk";
-// import ChattyKathy from "./lib";
 import AwsPolly from "./AwsPolly";
 
 interface AiTalkerProps {
@@ -96,7 +95,7 @@ function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
 
                                 chunk += firstPart;
 
-                                kathy.Speak(chunk);
+                                kathy.speak(chunk);
 
                                 chunk = secondPart;
 
@@ -112,7 +111,7 @@ function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
                     }
                 });
                 if (dataDone) {
-                    kathy.Speak(chunk);
+                    kathy.speak(chunk);
                     break;
                 }
             }
@@ -120,7 +119,7 @@ function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
 
         chatGpt();
 
-        kathy.ForgetCachedSpeech();
+        kathy.forgetCachedSpeech();
 
         setText("");
     };

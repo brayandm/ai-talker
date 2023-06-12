@@ -19,7 +19,7 @@ type SpeechCacheRecord = {
 class AwsPolly {
     settings: AwsPollySettings;
     audioElement: HTMLAudioElement;
-    isSpeaking: boolean;
+    isSpeakingNow: boolean;
     playlist: string[];
 
     constructor(settings: AwsPollySettings) {
@@ -35,13 +35,13 @@ class AwsPolly {
         document.body.appendChild(this.audioElement);
 
         // Set up audio player
-        this.isSpeaking = false;
+        this.isSpeakingNow = false;
         this.playlist = [];
     }
 
     // Speak
-    Speak(msg: string): void {
-        if (this.isSpeaking) {
+    speak(msg: string): void {
+        if (this.isSpeakingNow) {
             this.playlist.push(msg);
         } else {
             this.say(msg).then(this.sayNext.bind(this));
@@ -49,25 +49,25 @@ class AwsPolly {
     }
 
     // Quit speaking, clear playlist
-    ShutUp() {
-        this.shutUp();
+    shutUp() {
+        this.stop();
     }
 
     // Speak & return promise
-    SpeakWithPromise(msg: string) {
+    speakWithPromise(msg: string) {
         return this.say(msg);
     }
 
-    IsSpeaking() {
-        return this.isSpeaking;
+    isSpeaking() {
+        return this.isSpeakingNow;
     }
 
-    ForgetCachedSpeech() {
+    forgetCachedSpeech() {
         localStorage.removeItem("chattyKathyDictionary");
     }
 
     // Validate settings
-    getValidatedSettings(settings: AwsPollySettings) {
+    private getValidatedSettings(settings: AwsPollySettings) {
         if (typeof settings === "undefined") {
             throw "Settings must be provided to ChattyKathy's constructor";
         }
@@ -96,16 +96,16 @@ class AwsPolly {
     }
 
     // Quit talking
-    shutUp() {
-        this.isSpeaking = false;
+    private stop() {
+        this.isSpeakingNow = false;
         this.audioElement.pause();
         this.playlist = [];
     }
 
     // Speak the message
-    say(message: string) {
+    private say(message: string) {
         return new Promise((successCallback, errorCallback) => {
-            this.isSpeaking = true;
+            this.isSpeakingNow = true;
             this.getAudio(message)
                 ?.then(this.playAudio.bind(this))
                 .then(successCallback);
@@ -113,7 +113,7 @@ class AwsPolly {
     }
 
     // Say next
-    sayNext() {
+    private sayNext() {
         var list = this.playlist;
         if (list.length > 0) {
             var msg = list[0];
@@ -123,7 +123,7 @@ class AwsPolly {
     }
 
     // Get Audio
-    getAudio(message: string) {
+    private getAudio(message: string) {
         if (
             this.settings.cacheSpeech === false ||
             this.requestSpeechFromLocalCache(message) === null
@@ -135,7 +135,7 @@ class AwsPolly {
     }
 
     // Make request to Amazon polly
-    requestSpeechFromAWS(message: string) {
+    private requestSpeechFromAWS(message: string) {
         return new Promise((successCallback, errorCallback) => {
             var polly = new AWS.Polly();
             var params = {
@@ -158,7 +158,7 @@ class AwsPolly {
     }
 
     // Save to local cache
-    saveSpeechToLocalCache(
+    private saveSpeechToLocalCache(
         message: string,
         audioStream: AudioStream | undefined
     ) {
@@ -183,7 +183,7 @@ class AwsPolly {
     }
 
     // Check local cache for audio clip
-    requestSpeechFromLocalCache(message: string) {
+    private requestSpeechFromLocalCache(message: string) {
         var audioDictionary = localStorage.getItem("chattyKathyDictionary");
         if (audioDictionary === null) {
             return null;
@@ -205,7 +205,7 @@ class AwsPolly {
     }
 
     // Play audio
-    playAudio(audioStream: unknown) {
+    private playAudio(audioStream: unknown) {
         return new Promise((success, error) => {
             var uInt8Array = new Uint8Array(audioStream as Buffer);
             var arrayBuffer = uInt8Array.buffer;
@@ -214,7 +214,7 @@ class AwsPolly {
             var url = URL.createObjectURL(blob);
             this.audioElement.src = url;
             this.audioElement.addEventListener("ended", () => {
-                this.isSpeaking = false;
+                this.isSpeakingNow = false;
                 success("Success");
             });
             this.audioElement.play();
