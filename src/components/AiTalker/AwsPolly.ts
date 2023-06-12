@@ -1,6 +1,5 @@
-import AWS from "aws-sdk";
-import { AwsCredentialIdentity } from "@aws-sdk/types";
-import { AudioStream } from "aws-sdk/clients/polly";
+import { AwsCredentialIdentity, SdkStream } from "@aws-sdk/types";
+import { PollyClient, SynthesizeSpeechCommand } from "@aws-sdk/client-polly";
 
 type AwsPollySettings = {
     awsCredentials: AwsCredentialIdentity;
@@ -135,7 +134,7 @@ class AwsPolly {
     // Make request to Amazon polly
     private requestSpeechFromAWS(message: string) {
         return new Promise((successCallback, errorCallback) => {
-            var polly = new AWS.Polly({
+            var polly = new PollyClient({
                 region: this.settings.awsRegion,
                 credentials: this.settings.awsCredentials,
             });
@@ -147,10 +146,10 @@ class AwsPolly {
                 VoiceId: this.settings.pollyVoiceId,
                 TextType: "ssml",
             };
-            polly.synthesizeSpeech(params, (error, data) => {
+            polly.send(new SynthesizeSpeechCommand(params), (error, data) => {
                 if (error) {
                     errorCallback(error);
-                } else {
+                } else if (data) {
                     this.saveSpeechToLocalCache(message, data.AudioStream);
                     successCallback(data.AudioStream);
                 }
@@ -161,7 +160,7 @@ class AwsPolly {
     // Save to local cache
     private saveSpeechToLocalCache(
         message: string,
-        audioStream: AudioStream | undefined
+        audioStream: SdkStream<Blob> | undefined
     ) {
         var record = {
             Message: message,
@@ -206,10 +205,9 @@ class AwsPolly {
     }
 
     // Play audio
-    private playAudio(audioStream: unknown) {
-        return new Promise((success, error) => {
-            var uInt8Array = new Uint8Array(audioStream as Buffer);
-            var arrayBuffer = uInt8Array.buffer;
+    private playAudio(audioStream: SdkStream<Blob>) {
+        return new Promise(async (success, error) => {
+            var arrayBuffer = await audioStream.transformToByteArray();
             var blob = new Blob([arrayBuffer]);
 
             var url = URL.createObjectURL(blob);
