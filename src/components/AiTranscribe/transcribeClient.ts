@@ -22,17 +22,17 @@ class AWSTrascribe {
         this.settings = settings;
     }
 
-    createTranscribeClient = (settings: {
+    createTranscribeClient(settings: {
         region: string;
         credentials: AWS.Credentials;
-    }) => {
+    }) {
         this.transcribeClient = new TranscribeStreamingClient({
             region: settings.region,
             credentials: settings.credentials,
         });
-    };
+    }
 
-    createMicrophoneStream = async () => {
+    async createMicrophoneStream() {
         this.microphoneStream = new MicrophoneStream();
         this.microphoneStream.setStream(
             await window.navigator.mediaDevices.getUserMedia({
@@ -40,9 +40,9 @@ class AWSTrascribe {
                 audio: true,
             })
         );
-    };
+    }
 
-    startRecording = async (callback: (data: string) => void) => {
+    async startRecording(callback: (data: string) => void) {
         if (!this.settings.language) {
             return false;
         }
@@ -52,9 +52,9 @@ class AWSTrascribe {
         this.createTranscribeClient(this.settings);
         this.createMicrophoneStream();
         await this.startStreaming(this.settings.language, callback);
-    };
+    }
 
-    stopRecording = () => {
+    stopRecording() {
         if (this.microphoneStream) {
             this.microphoneStream.stop();
             this.microphoneStream.destroy();
@@ -64,19 +64,18 @@ class AWSTrascribe {
             this.transcribeClient.destroy();
             this.transcribeClient = undefined;
         }
-    };
+    }
 
-    startStreaming = async (
-        language: string,
-        callback: (data: string) => void
-    ) => {
+    async startStreaming(language: string, callback: (data: string) => void) {
         const command = new StartStreamTranscriptionCommand({
             LanguageCode: language,
             MediaEncoding: "pcm",
             MediaSampleRateHertz: this.SAMPLE_RATE,
             AudioStream: this.getAudioStream(),
         });
+
         const data = await this.transcribeClient?.send(command);
+
         for await (const event of data?.TranscriptResultStream || []) {
             for (const result of event.TranscriptEvent?.Transcript?.Results ||
                 []) {
@@ -95,7 +94,7 @@ class AWSTrascribe {
                 }
             }
         }
-    };
+    }
     async *getAudioStream() {
         for await (const chunk of this
             .microphoneStream as unknown as Buffer[]) {
@@ -109,7 +108,7 @@ class AWSTrascribe {
         }
     }
 
-    encodePCMChunk = (chunk: Buffer) => {
+    encodePCMChunk(chunk: Buffer) {
         const input = MicrophoneStream.toRaw(chunk);
         let offset = 0;
         const buffer = new ArrayBuffer(input.length * 2);
@@ -119,7 +118,7 @@ class AWSTrascribe {
             view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
         }
         return Buffer.from(buffer);
-    };
+    }
 }
 
 export default AWSTrascribe;
