@@ -32,7 +32,7 @@ function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
             pollyEngine: "standard",
             pollyLanguageCode: "es-ES",
             pollyVoiceId: "Lucia",
-            cacheSpeech: true,
+            cacheSpeech: false,
         };
 
         var kathy = new AwsPolly(settings);

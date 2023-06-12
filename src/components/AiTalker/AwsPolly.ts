@@ -189,7 +189,8 @@ class AwsPolly {
                 if (error) {
                     errorCallback(error);
                 } else if (data) {
-                    this.saveSpeechToLocalCache(message, data.AudioStream);
+                    if (this.settings.cacheSpeech)
+                        this.saveSpeechToLocalCache(message, data.AudioStream);
                     successCallback(data.AudioStream);
                 }
             });
