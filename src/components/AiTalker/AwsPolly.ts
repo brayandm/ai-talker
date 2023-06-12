@@ -56,11 +56,15 @@ class AwsPolly {
 
         const onSpeak = (message: string) => {
             const symbols = [".", "?", "!"];
+            const limChar = 50;
 
             let isSplited = false;
 
             for (let i = 0; i < message.length; i++) {
-                if (symbols.includes(message[i])) {
+                if (
+                    symbols.includes(message[i]) ||
+                    (chunk.length + i > limChar && message[i] === " ")
+                ) {
                     this.speak(chunk + message.substring(0, i + 1), true);
                     chunk = message.substring(i + 1);
                     isSplited = true;
@@ -151,9 +155,13 @@ class AwsPolly {
     private sayNext() {
         var list = this.playlist;
         if (list.length > 0) {
-            var msg = list[0].message;
-            console.log(list[0]);
-            list.splice(0, 1);
+            var msg = "";
+
+            do {
+                msg += list[0].message;
+                list.splice(0, 1);
+            } while (list.length > 0 && list[0].joinWithPrevious);
+
             this.say(msg).then(this.sayNext.bind(this));
         }
     }
