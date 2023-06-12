@@ -1,7 +1,7 @@
 import AWS from "aws-sdk";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 
-type AWSPollySettings = {
+type AwsPollySettings = {
     awsCredentials: AwsCredentialIdentity;
     awsRegion: string;
     pollyEngine: string;
@@ -10,7 +10,7 @@ type AWSPollySettings = {
     cacheSpeech: boolean;
 };
 
-export default function ChattyKathy(settings: AWSPollySettings) {
+export default function ChattyKathy(settings: AwsPollySettings) {
     settings = getValidatedSettings(settings);
 
     // Add audio node to html
@@ -174,7 +174,7 @@ export default function ChattyKathy(settings: AWSPollySettings) {
     }
 
     // Validate settings
-    function getValidatedSettings(settings: AWSPollySettings) {
+    function getValidatedSettings(settings: AwsPollySettings) {
         if (typeof settings === "undefined") {
             throw "Settings must be provided to ChattyKathy's constructor";
         }
