@@ -42,23 +42,16 @@ class AWSTrascribe {
         );
     };
 
-    startRecording = async (
-        settings: {
-            language: string;
-            region: string;
-            credentials: AWS.Credentials;
-        },
-        callback: (data: string) => void
-    ) => {
-        if (!settings.language) {
+    startRecording = async (callback: (data: string) => void) => {
+        if (!this.settings.language) {
             return false;
         }
         if (this.microphoneStream || this.transcribeClient) {
             this.stopRecording();
         }
-        this.createTranscribeClient(settings);
+        this.createTranscribeClient(this.settings);
         this.createMicrophoneStream();
-        await this.startStreaming(settings.language, callback);
+        await this.startStreaming(this.settings.language, callback);
     };
 
     stopRecording = () => {

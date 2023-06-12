@@ -28,14 +28,7 @@ function AiTranscribe({ accessKey, secretKey }: AiTranscribeProps) {
     });
 
     const handleButtonClick = async () => {
-        TranscribeClient.startRecording(
-            {
-                language: "es-US",
-                region: "us-east-1",
-                credentials: new AWS.Credentials(accessKey, secretKey),
-            },
-            onTranscriptionDataReceived
-        );
+        TranscribeClient.startRecording(onTranscriptionDataReceived);
     };
 
     const handleStop = async () => {
