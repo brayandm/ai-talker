@@ -56,8 +56,6 @@ function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
             onFinish
         );
 
-        kathy.forgetCachedSpeech();
-
         setText("");
     };
 
