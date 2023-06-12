@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/client-polly": "^3.350.0",
     "@aws-sdk/client-transcribe-streaming": "^3.350.0",
     "@aws-sdk/credential-provider-node": "^3.350.0",
     "@aws-sdk/credential-providers": "^3.350.0",

@@ -25,8 +25,6 @@ class AwsPolly {
     constructor(settings: AwsPollySettings) {
         // Validate settings
         this.settings = this.getValidatedSettings(settings);
-        AWS.config.credentials = settings.awsCredentials;
-        AWS.config.region = settings.awsRegion;
 
         // Add audio node to html
         var elementId = "audioElement" + new Date().valueOf().toString();
@@ -137,7 +135,10 @@ class AwsPolly {
     // Make request to Amazon polly
     private requestSpeechFromAWS(message: string) {
         return new Promise((successCallback, errorCallback) => {
-            var polly = new AWS.Polly();
+            var polly = new AWS.Polly({
+                region: this.settings.awsRegion,
+                credentials: this.settings.awsCredentials,
+            });
             var params = {
                 OutputFormat: "mp3",
                 Engine: this.settings.pollyEngine,
