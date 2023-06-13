@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, ChangeEvent } from "react";
+import { useRef, useState, useEffect } from "react";
 import AWS from "aws-sdk";
 import AwsPolly from "./lib/AwsPolly";
 import AwsTranscribe from "./lib/AwsTranscribe";
@@ -13,69 +13,106 @@ interface AiTalkerProps {
 }
 
 function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
-    const textRef = useRef<HTMLParagraphElement>(null);
+    const robotRef = useRef<HTMLParagraphElement>(null);
+    const meRef = useRef<HTMLParagraphElement>(null);
 
-    const [text, setText] = useState("");
+    var awsCredentials = new AWS.Credentials(accessKey, secretKey);
 
-    const handleTextChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-        setText(event.target.value);
+    var pollySettings = {
+        awsCredentials: awsCredentials,
+        awsRegion: "us-east-1",
+        pollyEngine: "neural",
+        pollyLanguageCode: "es-ES",
+        pollyVoiceId: "Lucia",
+        cacheSpeech: false,
     };
 
+    var transcribeSettings = {
+        language: "es-US",
+        region: "us-east-1",
+        credentials: awsCredentials,
+    };
+
+    const [polly] = useState<AwsPolly>(new AwsPolly(pollySettings));
+
+    const [transcribe] = useState<AwsTranscribe>(
+        new AwsTranscribe(transcribeSettings)
+    );
+
+    const [openai] = useState<OpenAiGpt>(
+        new OpenAiGpt({ authorization: token })
+    );
+
+    const [isRecording, setIsRecording] = useState(false);
+    const [isStarted, setIsStarted] = useState(false);
+
+    useEffect(() => {
+        if (isStarted) {
+            if (!isRecording) {
+                const onSpeakEnd = () => {
+                    console.log("onSpeakEnd");
+                    setIsRecording(true);
+                };
+                const { onStream, onStreamEnd } = polly.speakStream(onSpeakEnd);
+
+                const callback = (text: string) => {
+                    if (robotRef.current) robotRef.current.textContent += text;
+                    onStream(text);
+                };
+
+                const onFinish = () => {
+                    onStreamEnd();
+                };
+
+                openai.callGpt(
+                    [{ role: "user", content: meRef.current!.textContent! }],
+                    callback,
+                    onFinish
+                );
+                robotRef.current!.textContent = "";
+            } else {
+                let timeId: NodeJS.Timeout;
+                meRef.current!.textContent = "";
+
+                const onTranscriptionDataReceived = (data: string) => {
+                    console.log(data);
+                    if (meRef.current) {
+                        meRef.current.textContent += data;
+                    }
+
+                    if (timeId) clearTimeout(timeId);
+
+                    timeId = setTimeout(() => {
+                        setIsRecording(false);
+                        transcribe.stopRecording();
+                    }, 1000);
+                };
+
+                transcribe.startRecording(onTranscriptionDataReceived);
+            }
+        }
+    }, [isStarted, isRecording, polly, transcribe, openai]);
+
     const handleButtonClick = () => {
-        if (textRef.current) {
-            textRef.current.textContent = "";
-        }
+        setIsStarted(true);
+        setIsRecording(true);
+    };
 
-        var awsCredentials = new AWS.Credentials(accessKey, secretKey);
-        var settings = {
-            awsCredentials: awsCredentials,
-            awsRegion: "us-east-1",
-            pollyEngine: "neural",
-            pollyLanguageCode: "es-ES",
-            pollyVoiceId: "Lucia",
-            cacheSpeech: false,
-        };
-
-        var kathy = new AwsPolly(settings);
-
-        const { onStream, onStreamEnd } = kathy.speakStream(onSpeakEnd);
-
-        function onSpeakEnd() {
-            console.log("onSpeakEnd");
-        }
-
-        const callback = (text: string) => {
-            if (textRef.current) textRef.current.textContent += text;
-            onStream(text);
-        };
-
-        const onFinish = () => {
-            onStreamEnd();
-        };
-
-        const openAiGpt = new OpenAiGpt({ authorization: token });
-
-        openAiGpt.callGpt(
-            [{ role: "user", content: text }],
-            callback,
-            onFinish
-        );
-
-        setText("");
+    const handleButtonClickStop = () => {
+        robotRef.current!.textContent = "";
+        meRef.current!.textContent = "";
+        setIsStarted(false);
+        setIsRecording(true);
+        polly.shutUp();
+        transcribe.stopRecording();
     };
 
     return (
         <div>
-            <div>
-                <textarea
-                    value={text}
-                    onChange={handleTextChange}
-                    rows={4}
-                    cols={50}
-                />
-                <button onClick={handleButtonClick}>Enviar</button>
-            </div>
-            <p ref={textRef} />
+            <button onClick={handleButtonClick}>Start</button>
+            <button onClick={handleButtonClickStop}>stop</button>
+            <p ref={robotRef} />
+            <p ref={meRef} />
         </div>
     );
 }
