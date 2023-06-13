@@ -3,6 +3,7 @@
 import { useRef, useState, ChangeEvent } from "react";
 import AWS from "aws-sdk";
 import AwsPolly from "./lib/AwsPolly";
+import AwsTranscribe from "./lib/AwsTranscribe";
 import OpenAiGpt from "./lib/OpenAiGpt";
 
 interface AiTalkerProps {

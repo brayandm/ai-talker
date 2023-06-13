@@ -6,23 +6,23 @@ import MicrophoneStream from "microphone-stream";
 import { Buffer } from "buffer";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 
-type AwsTrascribeSettings = {
+type AwsTranscribeSettings = {
     language: string;
     region: string;
     credentials: AwsCredentialIdentity;
 };
 
-class AwsTrascribe {
+class AwsTranscribe {
     SAMPLE_RATE = 44100;
     microphoneStream: MicrophoneStream | undefined;
     transcribeClient: TranscribeStreamingClient | undefined;
-    settings: AwsTrascribeSettings;
+    settings: AwsTranscribeSettings;
 
-    constructor(settings: AwsTrascribeSettings) {
+    constructor(settings: AwsTranscribeSettings) {
         this.settings = settings;
     }
 
-    createTranscribeClient(settings: AwsTrascribeSettings) {
+    createTranscribeClient(settings: AwsTranscribeSettings) {
         this.transcribeClient = new TranscribeStreamingClient({
             region: settings.region,
             credentials: settings.credentials,
@@ -119,4 +119,4 @@ class AwsTrascribe {
     }
 }
 
-export default AwsTrascribe;
+export default AwsTranscribe;
