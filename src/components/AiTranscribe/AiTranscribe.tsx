@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 
-import AWSTrascribe from "./AwsTranscribe";
+import AwsTranscribe from "./AwsTranscribe";
 
 import AWS from "aws-sdk";
 
@@ -21,7 +21,7 @@ function AiTranscribe({ accessKey, secretKey }: AiTranscribeProps) {
         }
     };
 
-    const TranscribeClient = new AWSTrascribe({
+    const TranscribeClient = new AwsTranscribe({
         language: "es-US",
         region: "us-east-1",
         credentials: new AWS.Credentials(accessKey, secretKey),
