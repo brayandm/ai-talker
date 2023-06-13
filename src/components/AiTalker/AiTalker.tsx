@@ -37,7 +37,11 @@ function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
 
         var kathy = new AwsPolly(settings);
 
-        const { onStream, onStreamEnd } = kathy.speakStream();
+        const { onStream, onStreamEnd } = kathy.speakStream(onSpeakEnd);
+
+        function onSpeakEnd() {
+            console.log("onSpeakEnd");
+        }
 
         const callback = (text: string) => {
             if (textRef.current) textRef.current.textContent += text;

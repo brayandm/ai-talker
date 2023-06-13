@@ -22,6 +22,7 @@ class AwsPolly {
     playlist: {
         message: string;
         joinWithPrevious: boolean;
+        onSpeakEnd: () => void;
     }[];
 
     constructor(settings: AwsPollySettings) {
@@ -40,18 +41,26 @@ class AwsPolly {
     }
 
     // Speak
-    speak(msg: string, joinWithPrevious: boolean = false): void {
+    speak(
+        msg: string,
+        joinWithPrevious: boolean = false,
+        onSpeakEnd: () => void = () => {}
+    ): void {
         if (this.isSpeakingNow) {
             this.playlist.push({
                 message: msg,
                 joinWithPrevious: joinWithPrevious,
+                onSpeakEnd: onSpeakEnd,
             });
         } else {
-            this.say(msg).then(this.sayNext.bind(this));
+            this.say(msg).then(() => {
+                onSpeakEnd();
+                this.sayNext();
+            });
         }
     }
 
-    speakStream() {
+    speakStream(onSpeakEnd: () => void = () => {}) {
         var chunk = "";
 
         const onStream = (message: string) => {
@@ -78,7 +87,7 @@ class AwsPolly {
         };
 
         const onStreamEnd = () => {
-            this.speak(chunk, true);
+            this.speak(chunk, true, onSpeakEnd);
         };
 
         return {
@@ -156,13 +165,20 @@ class AwsPolly {
         var list = this.playlist;
         if (list.length > 0) {
             var msg = "";
+            var callbackList: (() => void)[] = [];
 
             do {
                 msg += list[0].message;
+                callbackList.push(list[0].onSpeakEnd);
                 list.splice(0, 1);
             } while (list.length > 0 && list[0].joinWithPrevious);
 
-            this.say(msg).then(this.sayNext.bind(this));
+            this.say(msg).then(() => {
+                callbackList.forEach((callback) => {
+                    callback();
+                });
+                this.sayNext();
+            });
         }
     }
 
