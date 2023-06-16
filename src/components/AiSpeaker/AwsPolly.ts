@@ -25,20 +25,57 @@ class AwsPolly {
         onSpeakEnd: () => void;
     }[];
     stopStreamSignal: boolean = false;
+    analyser: AnalyserNode;
 
     constructor(settings: AwsPollySettings) {
         // Validate settings
         this.settings = this.getValidatedSettings(settings);
 
         // Add audio node to html
-        var elementId = "audioElement" + new Date().valueOf().toString();
-        this.audioElement = document.createElement("audio");
-        this.audioElement.setAttribute("id", elementId);
-        document.body.appendChild(this.audioElement);
+        this.audioElement = new Audio();
+        this.audioElement.load();
 
         // Set up audio player
         this.isSpeakingNow = false;
         this.playlist = [];
+
+        // Set up web audio object
+        let audioContext = new AudioContext();
+        this.analyser = audioContext.createAnalyser();
+        this.analyser.connect(audioContext.destination);
+        let source = audioContext.createMediaElementSource(this.audioElement);
+
+        // async, wait for audio to load before connecting to audioContext
+        this.audioElement.addEventListener("canplaythrough", () => {
+            source.connect(this.analyser);
+            this.draw();
+        });
+    }
+
+    draw() {
+        var ID = requestAnimationFrame(this.draw.bind(this));
+        if (this.audioElement.paused) {
+            cancelAnimationFrame(ID);
+        }
+        let data = this.getDataFromAudio(); // {f:array, t:array}
+        let waveSum = 0;
+
+        //draw live waveform and oscilloscope
+        for (let i = 0; i < data.f.length; i++) {
+            waveSum += data.f[i]; //add current bar value (max 255)
+        }
+        waveSum = waveSum / data.f.length; //get average of all bars
+
+        console.log(waveSum);
+    }
+
+    getDataFromAudio() {
+        //analyser.fftSize = 2048;
+        let freqByteData = new Uint8Array(this.analyser.fftSize / 2);
+        let timeByteData = new Uint8Array(this.analyser.fftSize / 2);
+        this.analyser.getByteFrequencyData(freqByteData);
+        this.analyser.getByteTimeDomainData(timeByteData);
+        return { f: freqByteData, t: timeByteData }; // array of all 1024 levels
     }
 
     // Speak
@@ -282,6 +319,8 @@ class AwsPolly {
         return new Promise(async (success, error) => {
             var arrayBuffer = await audioStream.transformToByteArray();
             var blob = new Blob([arrayBuffer]);
+
+            console.log("Playing audio", arrayBuffer);
 
             var url = URL.createObjectURL(blob);
             this.audioElement.src = url;

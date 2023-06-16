@@ -19,16 +19,16 @@ function AiSpeaker({ accessKey, secretKey }: AiSpeakerProps) {
         pollyVoiceId: "Lucia",
         cacheSpeech: false,
     };
-    var kathy = new AwsPolly(settings);
 
     function onClick() {
+        var kathy = new AwsPolly(settings);
         kathy.speak("¡Hola mundo, mi nombre es Lucia!");
     }
 
     function shutup() {
-        if (kathy.isSpeaking()) {
-            kathy.shutUp();
-        }
+        // if (kathy.isSpeaking()) {
+        //     kathy.shutUp();
+        // }
     }
 
     return (
