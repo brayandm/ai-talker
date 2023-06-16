@@ -10,9 +10,23 @@ interface AiTalkerProps {
     token: string;
     accessKey: string;
     secretKey: string;
+    awsRegion: string;
+    pollyVoice: string;
+    pollyEngine: string;
+    pollyLanguage: string;
+    transcribeLanguage: string;
 }
 
-function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
+function AiTalker({
+    token,
+    accessKey,
+    secretKey,
+    awsRegion = "us-east-1",
+    pollyVoice = "Lucia",
+    pollyEngine = "neural",
+    pollyLanguage = "es-ES",
+    transcribeLanguage = "es-US",
+}: AiTalkerProps) {
     const talkerRef = useRef<HTMLParagraphElement>(null);
     const humanRef = useRef<HTMLParagraphElement>(null);
 
@@ -23,16 +37,16 @@ function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
 
     var pollySettings = {
         awsCredentials: awsCredentials,
-        awsRegion: "us-east-1",
-        pollyEngine: "neural",
-        pollyLanguageCode: "es-ES",
-        pollyVoiceId: "Lucia",
+        awsRegion: awsRegion,
+        pollyEngine: pollyEngine,
+        pollyVoiceId: pollyVoice,
+        pollyLanguageCode: pollyLanguage,
         cacheSpeech: false,
     };
 
     var transcribeSettings = {
-        language: "es-US",
-        region: "us-east-1",
+        language: transcribeLanguage,
+        region: awsRegion,
         credentials: awsCredentials,
     };
 
