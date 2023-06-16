@@ -66,7 +66,6 @@ function AiTalker({
     const [isStarted, setIsStarted] = useState(false);
     const [chat, setChat] = useState<{ role: string; content: string }[]>([]);
 
-    console.log("chat", chat);
     useEffect(() => {
         if (isStarted) {
             if (!isRecording) {
