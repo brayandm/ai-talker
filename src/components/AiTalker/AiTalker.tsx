@@ -1,10 +1,10 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
+import { AwsCredentialIdentity } from "@aws-sdk/types";
 import AwsPolly from "./lib/AwsPolly";
 import AwsTranscribe from "./lib/AwsTranscribe";
 import OpenAiGpt from "./lib/OpenAiGpt";
-import { AwsCredentialIdentity } from "@aws-sdk/types";
 
 interface AiTalkerProps {
     token: string;
@@ -13,8 +13,8 @@ interface AiTalkerProps {
 }
 
 function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
-    const robotRef = useRef<HTMLParagraphElement>(null);
-    const meRef = useRef<HTMLParagraphElement>(null);
+    const talkerRef = useRef<HTMLParagraphElement>(null);
+    const humanRef = useRef<HTMLParagraphElement>(null);
 
     var awsCredentials = {
         accessKeyId: accessKey,
@@ -36,14 +36,14 @@ function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
         credentials: awsCredentials,
     };
 
+    const [openai] = useState<OpenAiGpt>(
+        new OpenAiGpt({ authorization: token })
+    );
+
     const [polly] = useState<AwsPolly>(new AwsPolly(pollySettings));
 
     const [transcribe] = useState<AwsTranscribe>(
         new AwsTranscribe(transcribeSettings)
-    );
-
-    const [openai] = useState<OpenAiGpt>(
-        new OpenAiGpt({ authorization: token })
     );
 
     const [isRecording, setIsRecording] = useState(false);
@@ -53,13 +53,14 @@ function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
         if (isStarted) {
             if (!isRecording) {
                 const onSpeakEnd = () => {
-                    console.log("onSpeakEnd");
                     setIsRecording(true);
                 };
+
                 const { onStream, onStreamEnd } = polly.speakStream(onSpeakEnd);
 
                 const callback = (text: string) => {
-                    if (robotRef.current) robotRef.current.textContent += text;
+                    if (talkerRef.current)
+                        talkerRef.current.textContent += text;
                     onStream(text);
                 };
 
@@ -68,26 +69,27 @@ function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
                 };
 
                 openai.callGpt(
-                    [{ role: "user", content: meRef.current!.textContent! }],
+                    [{ role: "user", content: humanRef.current!.textContent! }],
                     callback,
                     onFinish
                 );
-                robotRef.current!.textContent = "";
+
+                talkerRef.current!.textContent = "";
             } else {
                 let timeId: NodeJS.Timeout;
-                meRef.current!.textContent = "";
+
+                humanRef.current!.textContent = "";
 
                 const onTranscriptionDataReceived = (data: string) => {
-                    console.log(data);
-                    if (meRef.current) {
-                        meRef.current.textContent += data;
+                    if (humanRef.current) {
+                        humanRef.current.textContent += data;
                     }
 
                     if (timeId) clearTimeout(timeId);
 
                     timeId = setTimeout(() => {
-                        setIsRecording(false);
                         transcribe.stopRecording();
+                        setIsRecording(false);
                     }, 1000);
                 };
 
@@ -102,21 +104,21 @@ function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
     };
 
     const handleButtonClickStop = () => {
-        robotRef.current!.textContent = "";
-        meRef.current!.textContent = "";
         setIsStarted(false);
         setIsRecording(true);
         openai.stopGpt();
         polly.shutUp();
         transcribe.stopRecording();
+        talkerRef.current!.textContent = "";
+        humanRef.current!.textContent = "";
     };
 
     return (
         <div>
             <button onClick={handleButtonClick}>Start</button>
             <button onClick={handleButtonClickStop}>stop</button>
-            <p ref={robotRef} />
-            <p ref={meRef} />
+            <p ref={talkerRef} />
+            <p ref={humanRef} />
         </div>
     );
 }
