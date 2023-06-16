@@ -10,11 +10,12 @@ interface AiTalkerProps {
     token: string;
     accessKey: string;
     secretKey: string;
-    awsRegion: string;
-    pollyVoice: string;
-    pollyEngine: string;
-    pollyLanguage: string;
-    transcribeLanguage: string;
+    awsRegion?: string;
+    pollyVoice?: string;
+    pollyEngine?: string;
+    pollyLanguage?: string;
+    transcribeLanguage?: string;
+    keepContext?: boolean;
 }
 
 function AiTalker({
@@ -26,6 +27,7 @@ function AiTalker({
     pollyEngine = "neural",
     pollyLanguage = "es-ES",
     transcribeLanguage = "es-US",
+    keepContext = false,
 }: AiTalkerProps) {
     const talkerRef = useRef<HTMLParagraphElement>(null);
     const humanRef = useRef<HTMLParagraphElement>(null);
@@ -62,12 +64,24 @@ function AiTalker({
 
     const [isRecording, setIsRecording] = useState(false);
     const [isStarted, setIsStarted] = useState(false);
+    const [chat, setChat] = useState<{ role: string; content: string }[]>([]);
 
+    console.log("chat", chat);
     useEffect(() => {
         if (isStarted) {
             if (!isRecording) {
+                let speech = "";
+
+                talkerRef.current!.textContent = "";
+
                 const onSpeakEnd = () => {
                     setIsRecording(true);
+                    if (keepContext) {
+                        setChat((prev) => [
+                            ...prev,
+                            { role: "assistant", content: speech },
+                        ]);
+                    }
                 };
 
                 const { onStream, onStreamEnd } = polly.speakStream(onSpeakEnd);
@@ -75,6 +89,8 @@ function AiTalker({
                 const callback = (text: string) => {
                     if (talkerRef.current)
                         talkerRef.current.textContent += text;
+
+                    speech += text;
                     onStream(text);
                 };
 
@@ -82,15 +98,11 @@ function AiTalker({
                     onStreamEnd();
                 };
 
-                openai.callGpt(
-                    [{ role: "user", content: humanRef.current!.textContent! }],
-                    callback,
-                    onFinish
-                );
-
-                talkerRef.current!.textContent = "";
+                openai.callGpt(chat, callback, onFinish);
             } else {
                 let timeId: NodeJS.Timeout;
+
+                let transcription = "";
 
                 humanRef.current!.textContent = "";
 
@@ -99,18 +111,29 @@ function AiTalker({
                         humanRef.current.textContent += data;
                     }
 
+                    transcription += data;
+
                     if (timeId) clearTimeout(timeId);
 
                     timeId = setTimeout(() => {
                         transcribe.stopRecording();
                         setIsRecording(false);
+
+                        if (keepContext) {
+                            setChat((prev) => [
+                                ...prev,
+                                { role: "user", content: transcription },
+                            ]);
+                        } else {
+                            setChat([{ role: "user", content: transcription }]);
+                        }
                     }, 1000);
                 };
 
                 transcribe.startRecording(onTranscriptionDataReceived);
             }
         }
-    }, [isStarted, isRecording, polly, transcribe, openai]);
+    }, [isStarted, isRecording, polly, transcribe, openai, chat, keepContext]);
 
     const handleButtonClick = () => {
         setIsStarted(true);
