@@ -1,10 +1,10 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import AWS from "aws-sdk";
 import AwsPolly from "./lib/AwsPolly";
 import AwsTranscribe from "./lib/AwsTranscribe";
 import OpenAiGpt from "./lib/OpenAiGpt";
+import { AwsCredentialIdentity } from "@aws-sdk/types";
 
 interface AiTalkerProps {
     token: string;
@@ -16,7 +16,10 @@ function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
     const robotRef = useRef<HTMLParagraphElement>(null);
     const meRef = useRef<HTMLParagraphElement>(null);
 
-    var awsCredentials = new AWS.Credentials(accessKey, secretKey);
+    var awsCredentials = {
+        accessKeyId: accessKey,
+        secretAccessKey: secretKey,
+    } as AwsCredentialIdentity;
 
     var pollySettings = {
         awsCredentials: awsCredentials,
