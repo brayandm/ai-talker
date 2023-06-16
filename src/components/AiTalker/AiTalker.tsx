@@ -99,7 +99,7 @@ function AiTalker({
 
                 openai.callGpt(chat, callback, onFinish);
             } else {
-                let timeId: NodeJS.Timeout;
+                let timeoutId: NodeJS.Timeout;
 
                 let transcription = "";
 
@@ -112,9 +112,9 @@ function AiTalker({
 
                     transcription += data;
 
-                    if (timeId) clearTimeout(timeId);
+                    if (timeoutId) clearTimeout(timeoutId);
 
-                    timeId = setTimeout(() => {
+                    timeoutId = setTimeout(() => {
                         transcribe.stopRecording();
                         setIsRecording(false);
 
@@ -129,6 +129,12 @@ function AiTalker({
                     }, 1000);
                 };
 
+                timeoutId = setTimeout(() => {
+                    transcribe.stopRecording();
+                    setIsStarted(false);
+                    setChat([]);
+                }, 5000);
+
                 transcribe.startRecording(onTranscriptionDataReceived);
             }
         }
@@ -142,6 +148,7 @@ function AiTalker({
     const handleButtonClickStop = () => {
         setIsStarted(false);
         setIsRecording(true);
+        setChat([]);
         openai.stopGpt();
         polly.shutUp();
         transcribe.stopRecording();
