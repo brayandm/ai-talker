@@ -3,8 +3,14 @@ class OpenAiGpt {
         authorization: string;
     };
 
+    stopStreamSignal: boolean = false;
+
     constructor(settings: { authorization: string }) {
         this.settings = settings;
+    }
+
+    stopGpt() {
+        this.stopStreamSignal = true;
     }
 
     async callGpt(
@@ -12,6 +18,8 @@ class OpenAiGpt {
         callback: (text: string) => void,
         onFinish: () => void
     ) {
+        this.stopStreamSignal = false;
+
         const gpt = async () => {
             const response = await fetch(
                 "https://api.openai.com/v1/chat/completions",
@@ -48,10 +56,12 @@ class OpenAiGpt {
                     }
                     const json = JSON.parse(data.substring(6));
                     if (json.choices[0].delta.content) {
+                        if (this.stopStreamSignal) return;
                         callback(json.choices[0].delta.content);
                     }
                 });
-                if (dataDone) {
+                if (dataDone || this.stopStreamSignal) {
+                    this.stopStreamSignal = false;
                     onFinish();
                     break;
                 }

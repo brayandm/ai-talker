@@ -24,6 +24,7 @@ class AwsPolly {
         joinWithPrevious: boolean;
         onSpeakEnd: () => void;
     }[];
+    stopStreamSignal: boolean = false;
 
     constructor(settings: AwsPollySettings) {
         // Validate settings
@@ -61,6 +62,8 @@ class AwsPolly {
     }
 
     speakStream(onSpeakEnd: () => void = () => {}) {
+        this.stopStreamSignal = false;
+
         var chunk = "";
 
         const onStream = (message: string) => {
@@ -74,6 +77,7 @@ class AwsPolly {
                     symbols.includes(message[i]) ||
                     (chunk.length + i > limChar && message[i] === " ")
                 ) {
+                    if (this.stopStreamSignal) break;
                     this.speak(chunk + message.substring(0, i + 1), true);
                     chunk = message.substring(i + 1);
                     isSplited = true;
@@ -87,6 +91,10 @@ class AwsPolly {
         };
 
         const onStreamEnd = () => {
+            if (this.stopStreamSignal) {
+                this.stopStreamSignal = false;
+                return;
+            }
             this.speak(chunk, true, onSpeakEnd);
         };
 
@@ -99,6 +107,7 @@ class AwsPolly {
     // Quit speaking, clear playlist
     shutUp() {
         this.stop();
+        this.stopStreamSignal = true;
     }
 
     // Speak & return promise

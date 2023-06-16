@@ -103,6 +103,7 @@ function AiTalker({ token, accessKey, secretKey }: AiTalkerProps) {
         meRef.current!.textContent = "";
         setIsStarted(false);
         setIsRecording(true);
+        openai.stopGpt();
         polly.shutUp();
         transcribe.stopRecording();
     };
