@@ -2,7 +2,7 @@
 
 import AWS from "aws-sdk";
 
-import ChattyKathy from "./lib";
+import AwsPolly from "./AwsPolly";
 
 interface AiSpeakerProps {
     accessKey: string;
@@ -17,22 +17,17 @@ function AiSpeaker({ accessKey, secretKey }: AiSpeakerProps) {
         pollyEngine: "standard",
         pollyLanguageCode: "es-ES",
         pollyVoiceId: "Lucia",
-        cacheSpeech: true,
+        cacheSpeech: false,
     };
-    var kathy = ChattyKathy(settings);
+    var kathy = new AwsPolly(settings);
 
     function onClick() {
-        kathy.Speak("¡Hola mundo, mi nombre es Lucia!");
-        // kathy.Speak(
-        //     "¡Puedo ser utilizado para una experiencia de usuario increíble!"
-        // );
-
-        // kathy.ForgetCachedSpeech();
+        kathy.speak("¡Hola mundo, mi nombre es Lucia!");
     }
 
     function shutup() {
-        if (kathy.IsSpeaking()) {
-            kathy.ShutUp();
+        if (kathy.isSpeaking()) {
+            kathy.shutUp();
         }
     }
 
