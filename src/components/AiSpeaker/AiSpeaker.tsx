@@ -14,7 +14,7 @@ function AiSpeaker({ accessKey, secretKey }: AiSpeakerProps) {
     var settings = {
         awsCredentials: awsCredentials,
         awsRegion: "us-east-1",
-        pollyEngine: "neural",
+        pollyEngine: "standard",
         pollyLanguageCode: "es-ES",
         pollyVoiceId: "Lucia",
         cacheSpeech: true,
@@ -23,11 +23,11 @@ function AiSpeaker({ accessKey, secretKey }: AiSpeakerProps) {
 
     function onClick() {
         kathy.Speak("¡Hola mundo, mi nombre es Lucia!");
-        kathy.Speak(
-            "¡Puedo ser utilizado para una experiencia de usuario increíble!"
-        );
+        // kathy.Speak(
+        //     "¡Puedo ser utilizado para una experiencia de usuario increíble!"
+        // );
 
-        kathy.ForgetCachedSpeech();
+        // kathy.ForgetCachedSpeech();
     }
 
     function shutup() {
