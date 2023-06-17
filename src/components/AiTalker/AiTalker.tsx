@@ -139,9 +139,14 @@ function AiTalker({
         }
     }, [isStarted, isRecording, polly, transcribe, openai, chat, keepContext]);
 
+    const onPlaying = (freq: number) => {
+        console.log("playing", freq);
+    };
+
     const handleButtonClick = () => {
         setIsStarted(true);
         setIsRecording(true);
+        polly.setUpAnalyser(onPlaying);
     };
 
     const handleButtonClickStop = () => {
