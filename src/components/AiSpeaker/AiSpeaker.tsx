@@ -20,15 +20,21 @@ function AiSpeaker({ accessKey, secretKey }: AiSpeakerProps) {
         cacheSpeech: false,
     };
 
+    let kathy: AwsPolly;
+
+    function onPlaying(freq: number) {
+        console.log(freq);
+    }
+
     function onClick() {
-        var kathy = new AwsPolly(settings);
+        kathy = new AwsPolly(settings, onPlaying);
         kathy.speak("¡Hola mundo, mi nombre es Lucia!");
     }
 
     function shutup() {
-        // if (kathy.isSpeaking()) {
-        //     kathy.shutUp();
-        // }
+        if (kathy.isSpeaking()) {
+            kathy.shutUp();
+        }
     }
 
     return (

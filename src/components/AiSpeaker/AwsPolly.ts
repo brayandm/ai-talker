@@ -27,7 +27,10 @@ class AwsPolly {
     stopStreamSignal: boolean = false;
     analyser: AnalyserNode;
 
-    constructor(settings: AwsPollySettings) {
+    constructor(
+        settings: AwsPollySettings,
+        onPlaying: (freq: number) => void = () => {}
+    ) {
         // Validate settings
         this.settings = this.getValidatedSettings(settings);
 
@@ -48,12 +51,12 @@ class AwsPolly {
         // async, wait for audio to load before connecting to audioContext
         this.audioElement.addEventListener("canplaythrough", () => {
             source.connect(this.analyser);
-            this.draw();
+            this.draw(onPlaying);
         });
     }
 
-    draw() {
-        var ID = requestAnimationFrame(this.draw.bind(this));
+    draw(onPlaying: (freq: number) => void) {
+        var ID = requestAnimationFrame(this.draw.bind(this, onPlaying));
         if (this.audioElement.paused) {
             cancelAnimationFrame(ID);
         }
@@ -66,7 +69,7 @@ class AwsPolly {
         }
         waveSum = waveSum / data.f.length; //get average of all bars
 
-        console.log(waveSum);
+        onPlaying(waveSum);
     }
 
     getDataFromAudio() {
@@ -319,8 +322,6 @@ class AwsPolly {
         return new Promise(async (success, error) => {
             var arrayBuffer = await audioStream.transformToByteArray();
             var blob = new Blob([arrayBuffer]);
-
-            console.log("Playing audio", arrayBuffer);
 
             var url = URL.createObjectURL(blob);
             this.audioElement.src = url;
