@@ -25,12 +25,12 @@ class AwsPolly {
         onSpeakEnd: () => void;
     }[];
     stopStreamSignal: boolean = false;
-    analyser: AnalyserNode;
+    analyser?: AnalyserNode;
+    source?: MediaElementAudioSourceNode;
+    onAnalyserPlaying?: () => void;
+    isAnalyserSetUp: boolean = false;
 
-    constructor(
-        settings: AwsPollySettings,
-        onPlaying: (freq: number) => void = () => {}
-    ) {
+    constructor(settings: AwsPollySettings) {
         // Validate settings
         this.settings = this.getValidatedSettings(settings);
 
@@ -41,18 +41,37 @@ class AwsPolly {
         // Set up audio player
         this.isSpeakingNow = false;
         this.playlist = [];
+    }
 
-        // Set up web audio object
-        let audioContext = new AudioContext();
-        this.analyser = audioContext.createAnalyser();
-        this.analyser.connect(audioContext.destination);
-        let source = audioContext.createMediaElementSource(this.audioElement);
+    setUpAnalyser(onPlaying: (freq: number) => void = () => {}) {
+        if (!this.isAnalyserSetUp) {
+            // Set up web audio object
+            let audioContext = new AudioContext();
+            this.analyser = audioContext.createAnalyser();
+            this.analyser.connect(audioContext.destination);
+            this.source = audioContext.createMediaElementSource(
+                this.audioElement
+            );
+            this.source.connect(this.analyser);
+        }
+
+        if (this.isAnalyserSetUp) {
+            this.audioElement.removeEventListener(
+                "canplaythrough",
+                this.onAnalyserPlaying!
+            );
+        }
+        this.onAnalyserPlaying = () => {
+            this.draw(onPlaying);
+        };
 
         // async, wait for audio to load before connecting to audioContext
-        this.audioElement.addEventListener("canplaythrough", () => {
-            source.connect(this.analyser);
-            this.draw(onPlaying);
-        });
+        this.audioElement.addEventListener(
+            "canplaythrough",
+            this.onAnalyserPlaying
+        );
+
+        this.isAnalyserSetUp = true;
     }
 
     draw(onPlaying: (freq: number) => void) {
@@ -74,10 +93,10 @@ class AwsPolly {
 
     getDataFromAudio() {
         //analyser.fftSize = 2048;
-        let freqByteData = new Uint8Array(this.analyser.fftSize / 2);
-        let timeByteData = new Uint8Array(this.analyser.fftSize / 2);
-        this.analyser.getByteFrequencyData(freqByteData);
-        this.analyser.getByteTimeDomainData(timeByteData);
+        let freqByteData = new Uint8Array(this.analyser!.fftSize / 2);
+        let timeByteData = new Uint8Array(this.analyser!.fftSize / 2);
+        this.analyser!.getByteFrequencyData(freqByteData);
+        this.analyser!.getByteTimeDomainData(timeByteData);
         return { f: freqByteData, t: timeByteData }; // array of all 1024 levels
     }
 
