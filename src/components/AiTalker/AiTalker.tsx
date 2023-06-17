@@ -121,6 +121,7 @@ function AiTalker({
                     if (isAsleep) {
                         setIsStarted(false);
                         setChat([]);
+                        updateSpeaker(0, true, true);
                     } else {
                         setIsRecording(false);
 
@@ -148,22 +149,22 @@ function AiTalker({
     };
 
     const handleButtonClick = () => {
-        updateSpeaker(0, true);
-        setIsStarted(true);
-        setIsRecording(true);
-        polly.setUpAnalyser(onPlaying);
-    };
-
-    const handleButtonClickStop = () => {
-        setIsStarted(false);
-        setIsRecording(true);
-        setChat([]);
-        openai.stopGpt();
-        polly.shutUp();
-        transcribe.stopRecording();
-        talkerRef.current!.textContent = "";
-        humanRef.current!.textContent = "";
-        updateSpeaker(0, true, true);
+        if (!isStarted) {
+            updateSpeaker(0, true);
+            setIsStarted(true);
+            setIsRecording(true);
+            polly.setUpAnalyser(onPlaying);
+        } else {
+            setIsStarted(false);
+            setIsRecording(true);
+            setChat([]);
+            openai.stopGpt();
+            polly.shutUp();
+            transcribe.stopRecording();
+            talkerRef.current!.textContent = "";
+            humanRef.current!.textContent = "";
+            updateSpeaker(0, true, true);
+        }
     };
 
     function updateSpeaker(
@@ -192,7 +193,7 @@ function AiTalker({
                     : colors[i];
                 if (easeTransition)
                     ref.current.style.transition = isDown
-                        ? "ease width 0.4s, ease height 0.4s"
+                        ? "ease width 0.6s, ease height 0.6s"
                         : "ease width 0.2s, ease height 0.2s";
                 else ref.current.style.transition = "";
             }
@@ -222,7 +223,7 @@ function AiTalker({
                 <div
                     ref={upperCircle}
                     style={getStyles(60, "#c7c7c7", true)}
-                    onClick={() => {}}
+                    onClick={() => handleButtonClick()}
                 >
                     <div
                         ref={middleCircle}
@@ -235,8 +236,8 @@ function AiTalker({
                     </div>
                 </div>
             </div>
-            <button onClick={handleButtonClick}>Start</button>
-            <button onClick={handleButtonClickStop}>stop</button>
+            {/* <button onClick={handleButtonClick}>Start</button>
+            <button onClick={handleButtonClickStop}>stop</button> */}
             <p ref={talkerRef} />
             <p ref={humanRef} />
         </div>
