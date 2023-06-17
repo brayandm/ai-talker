@@ -76,7 +76,7 @@ function AiTalker({
             if (!isRecording) {
                 let speech = "";
 
-                talkerRef.current!.textContent = "";
+                if (talkerRef.current) talkerRef.current.textContent = "";
 
                 const onSpeakEnd = () => {
                     setIsRecording(true);
@@ -107,7 +107,7 @@ function AiTalker({
             } else {
                 let transcription = "";
 
-                humanRef.current!.textContent = "";
+                if (humanRef.current) humanRef.current.textContent = "";
 
                 const onTranscriptionDataReceived = (data: string) => {
                     if (humanRef.current) {
@@ -172,8 +172,8 @@ function AiTalker({
             openai.stopGpt();
             polly.shutUp();
             transcribe.stopRecording();
-            talkerRef.current!.textContent = "";
-            humanRef.current!.textContent = "";
+            if (talkerRef.current) talkerRef.current.textContent = "";
+            if (humanRef.current) humanRef.current.textContent = "";
             updateSpeaker(0, true, true);
         }
     };
@@ -249,8 +249,8 @@ function AiTalker({
             </div>
             {/* <button onClick={handleButtonClick}>Start</button>
             <button onClick={handleButtonClickStop}>stop</button> */}
-            <p ref={talkerRef} />
-            <p ref={humanRef} />
+            {/* <p ref={talkerRef} />
+            <p ref={humanRef} /> */}
         </div>
     );
 }
