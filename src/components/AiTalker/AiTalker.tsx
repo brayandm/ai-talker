@@ -174,7 +174,7 @@ function AiTalker({
     ) {
         const refArray = [upperCircle, middleCircle, lowerCircle];
         const sizes = [100, 80, 60];
-        const sizesBW = [60, 40, 20];
+        const sizesBW = [70, 50, 30];
         const colors = ["#9bdbf6", "#15a0e8", "white"];
         const colorsBW = ["#c7c7c7", "#6d6d6d", "white"];
 
@@ -222,16 +222,16 @@ function AiTalker({
             <div style={getStyles(300, "white")}>
                 <div
                     ref={upperCircle}
-                    style={getStyles(60, "#c7c7c7", true)}
+                    style={getStyles(70, "#c7c7c7", true)}
                     onClick={() => handleButtonClick()}
                 >
                     <div
                         ref={middleCircle}
-                        style={getStyles(40, "#6d6d6d", true)}
+                        style={getStyles(50, "#6d6d6d", true)}
                     >
                         <div
                             ref={lowerCircle}
-                            style={getStyles(20, "white", true)}
+                            style={getStyles(30, "white", true)}
                         ></div>
                     </div>
                 </div>
