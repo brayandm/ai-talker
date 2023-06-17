@@ -20,14 +20,14 @@ function AiSpeaker({ accessKey, secretKey }: AiSpeakerProps) {
         cacheSpeech: false,
     };
 
-    let kathy: AwsPolly;
+    let kathy = new AwsPolly(settings);
 
     function onPlaying(freq: number) {
         console.log(freq);
     }
 
     function onClick() {
-        kathy = new AwsPolly(settings, onPlaying);
+        kathy.setUpAnalyser(onPlaying);
         kathy.speak("¡Hola mundo, mi nombre es Lucia!");
     }
 
