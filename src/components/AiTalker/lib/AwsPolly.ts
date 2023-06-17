@@ -78,6 +78,7 @@ class AwsPolly {
         var ID = requestAnimationFrame(this.draw.bind(this, onPlaying));
         if (this.audioElement.paused) {
             cancelAnimationFrame(ID);
+            return;
         }
         let data = this.getDataFromAudio(); // {f:array, t:array}
         let waveSum = 0;
