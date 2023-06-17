@@ -1,11 +1,13 @@
+type OpenAiGptSettings = {
+    authorization: string;
+    preMessages?: { role: string; content: string }[];
+};
 class OpenAiGpt {
-    settings: {
-        authorization: string;
-    };
+    settings: OpenAiGptSettings;
 
     stopStreamSignal: boolean = false;
 
-    constructor(settings: { authorization: string }) {
+    constructor(settings: OpenAiGptSettings) {
         this.settings = settings;
     }
 
@@ -31,7 +33,9 @@ class OpenAiGpt {
                     },
                     body: JSON.stringify({
                         model: "gpt-3.5-turbo",
-                        messages: messages,
+                        messages: this.settings.preMessages
+                            ? this.settings.preMessages.concat(messages)
+                            : messages,
                         stream: true,
                     }),
                 }

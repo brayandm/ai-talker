@@ -29,7 +29,7 @@ function AiTalker({
     pollyLanguage = "es-ES",
     transcribeLanguage = "es-US",
     keepContext = false,
-    defaultSpeech = "Hola, soy tu asistente virtual. ¿En qué puedo ayudarte?",
+    defaultSpeech = "Hola!, mi nombre es Lucia. Soy tu nueva asistente virtual. ¿En qué puedo ayudarte hoy?",
 }: AiTalkerProps) {
     const talkerRef = useRef<HTMLParagraphElement>(null);
     const humanRef = useRef<HTMLParagraphElement>(null);
@@ -58,7 +58,15 @@ function AiTalker({
     };
 
     const [openai] = useState<OpenAiGpt>(
-        new OpenAiGpt({ authorization: token })
+        new OpenAiGpt({
+            authorization: token,
+            preMessages: [
+                {
+                    role: "system",
+                    content: "Eres un asistente virtual. Tu nombre es Lucia.",
+                },
+            ],
+        })
     );
 
     const [polly] = useState<AwsPolly>(new AwsPolly(pollySettings));
