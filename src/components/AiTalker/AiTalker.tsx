@@ -99,8 +99,6 @@ function AiTalker({
 
                 openai.callGpt(chat, callback, onFinish);
             } else {
-                let timeoutId: NodeJS.Timeout;
-
                 let transcription = "";
 
                 humanRef.current!.textContent = "";
@@ -111,11 +109,15 @@ function AiTalker({
                     }
 
                     transcription += data;
+                };
 
-                    if (timeoutId) clearTimeout(timeoutId);
+                const onTimeout = (isAsleep: boolean) => {
+                    transcribe.stopRecording();
 
-                    timeoutId = setTimeout(() => {
-                        transcribe.stopRecording();
+                    if (isAsleep) {
+                        setIsStarted(false);
+                        setChat([]);
+                    } else {
                         setIsRecording(false);
 
                         if (keepContext) {
@@ -126,16 +128,13 @@ function AiTalker({
                         } else {
                             setChat([{ role: "user", content: transcription }]);
                         }
-                    }, 1000);
+                    }
                 };
 
-                timeoutId = setTimeout(() => {
-                    transcribe.stopRecording();
-                    setIsStarted(false);
-                    setChat([]);
-                }, 5000);
-
-                transcribe.startRecording(onTranscriptionDataReceived);
+                transcribe.startRecording(
+                    onTranscriptionDataReceived,
+                    onTimeout
+                );
             }
         }
     }, [isStarted, isRecording, polly, transcribe, openai, chat, keepContext]);
