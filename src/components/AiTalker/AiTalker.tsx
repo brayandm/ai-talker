@@ -17,6 +17,7 @@ interface AiTalkerProps {
     transcribeLanguage?: string;
     keepContext?: boolean;
     defaultSpeech?: string;
+    defaultQuestions?: string[];
 }
 
 function AiTalker({
@@ -30,6 +31,13 @@ function AiTalker({
     transcribeLanguage = "es-US",
     keepContext = false,
     defaultSpeech = "Hola!, mi nombre es Lucia. Soy tu nueva asistente virtual. ¿En qué puedo ayudarte hoy?",
+    defaultQuestions = [
+        "¿En qué puedo ayudarte hoy?",
+        "¿Qué puedo hacer por ti?",
+        "¿En qué te puedo ayudar?",
+        "¿Qué necesitas?",
+        "¿En qué puedo ayudarte?",
+    ],
 }: AiTalkerProps) {
     const talkerRef = useRef<HTMLParagraphElement>(null);
     const humanRef = useRef<HTMLParagraphElement>(null);
@@ -78,6 +86,7 @@ function AiTalker({
     const [isRecording, setIsRecording] = useState(false);
     const [isStarted, setIsStarted] = useState(false);
     const [chat, setChat] = useState<{ role: string; content: string }[]>([]);
+    const [firstTime, setFirstTime] = useState(true);
 
     useEffect(() => {
         if (isStarted) {
@@ -166,9 +175,20 @@ function AiTalker({
             const onSpeakEnd = () => {
                 setIsStarted(true);
                 setIsRecording(true);
+                setFirstTime(false);
             };
 
-            polly.speak(defaultSpeech, false, onSpeakEnd);
+            if (firstTime) {
+                polly.speak(defaultSpeech, false, onSpeakEnd);
+            } else {
+                polly.speak(
+                    defaultQuestions[
+                        Math.floor(Math.random() * defaultQuestions.length)
+                    ],
+                    false,
+                    onSpeakEnd
+                );
+            }
 
             if (keepContext) {
                 setChat([{ role: "assistant", content: defaultSpeech }]);
