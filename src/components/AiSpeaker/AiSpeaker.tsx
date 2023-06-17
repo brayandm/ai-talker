@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { use, useRef } from "react";
 
 import AWS from "aws-sdk";
 
@@ -24,40 +24,42 @@ function AiSpeaker({ accessKey, secretKey }: AiSpeakerProps) {
 
     let kathy = new AwsPolly(settings);
 
-    function onPlaying(freq: number) {
-        if (ref.current) {
-            ref.current.style.width = `${100 + freq}px`;
-            ref.current.style.height = `${100 + freq}px`;
-            ref.current.style.transition = "";
-        }
-        if (ref2.current) {
-            ref2.current.style.width = `${80 + freq}px`;
-            ref2.current.style.height = `${80 + freq}px`;
-            ref2.current.style.transition = "";
-        }
-        if (ref3.current) {
-            ref3.current.style.width = `${60 + freq}px`;
-            ref3.current.style.height = `${60 + freq}px`;
-            ref3.current.style.transition = "";
+    function updateSpeaker(freq: number, easeTransition: boolean) {
+        const refArray = [upperCircle, middleCircle, lowerCircle];
+        const sizes = [100, 80, 60];
+
+        for (let i = 0; i < refArray.length; i++) {
+            const ref = refArray[i];
+
+            if (ref.current) {
+                ref.current.style.width = `${sizes[i] + freq}px`;
+                ref.current.style.height = `${sizes[i] + freq}px`;
+                if (easeTransition)
+                    ref.current.style.transition =
+                        "ease width 0.2s, ease height 0.2s";
+                else ref.current.style.transition = "";
+            }
         }
     }
 
+    function getStyles(size: number, color: string) {
+        return {
+            width: `${size}px`,
+            height: `${size}px`,
+            backgroundColor: color,
+            borderRadius: "50%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+        };
+    }
+
+    function onPlaying(freq: number) {
+        updateSpeaker(freq, false);
+    }
+
     function onSpeakEnd() {
-        if (ref.current) {
-            ref.current.style.width = `${100}px`;
-            ref.current.style.height = `${100}px`;
-            ref.current.style.transition = "ease width 0.2s, ease height 0.2s";
-        }
-        if (ref2.current) {
-            ref2.current.style.width = `${80}px`;
-            ref2.current.style.height = `${80}px`;
-            ref2.current.style.transition = "ease width 0.2s, ease height 0.2s";
-        }
-        if (ref3.current) {
-            ref3.current.style.width = `${60}px`;
-            ref3.current.style.height = `${60}px`;
-            ref3.current.style.transition = "ease width 0.2s, ease height 0.2s";
-        }
+        updateSpeaker(0, true);
     }
 
     function onClick() {
@@ -69,59 +71,23 @@ function AiSpeaker({ accessKey, secretKey }: AiSpeakerProps) {
         if (kathy.isSpeaking()) {
             kathy.shutUp();
         }
+        updateSpeaker(0, true);
     }
 
-    const ref = useRef<HTMLDivElement>(null);
-    const ref2 = useRef<HTMLDivElement>(null);
-    const ref3 = useRef<HTMLDivElement>(null);
+    const upperCircle = useRef<HTMLDivElement>(null);
+    const middleCircle = useRef<HTMLDivElement>(null);
+    const lowerCircle = useRef<HTMLDivElement>(null);
 
     return (
         <>
             <button onClick={onClick}>Speak</button>
             <button onClick={shutup}>ShutUp</button>
-            <div
-                style={{
-                    marginTop: "100px",
-                    marginLeft: "100px",
-                    width: "500px",
-                    height: "500px",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                }}
-            >
-                <div
-                    ref={ref}
-                    style={{
-                        width: "100px",
-                        height: "100px",
-                        backgroundColor: "#9bdbf6",
-                        borderRadius: "50%",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                    }}
-                >
-                    <div
-                        ref={ref2}
-                        style={{
-                            width: "80px",
-                            height: "80px",
-                            backgroundColor: "#15a0e8",
-                            borderRadius: "50%",
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                        }}
-                    >
+            <div style={getStyles(300, "white")}>
+                <div ref={upperCircle} style={getStyles(100, "#9bdbf6")}>
+                    <div ref={middleCircle} style={getStyles(80, "#15a0e8")}>
                         <div
-                            ref={ref3}
-                            style={{
-                                width: "60px",
-                                height: "60px",
-                                backgroundColor: "white",
-                                borderRadius: "50%",
-                            }}
+                            ref={lowerCircle}
+                            style={getStyles(60, "white")}
                         ></div>
                     </div>
                 </div>
