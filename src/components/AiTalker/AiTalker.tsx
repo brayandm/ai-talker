@@ -10,10 +10,11 @@ interface AiTalkerProps {
     token: string;
     accessKey: string;
     secretKey: string;
-    awsRegion?: string;
+    pollyAwsRegion: string;
     pollyVoice?: string;
     pollyEngine?: string;
     pollyLanguage?: string;
+    transcribeAwsRegion: string;
     transcribeLanguage?: string;
     keepContext?: boolean;
     defaultSpeech?: string;
@@ -24,10 +25,11 @@ function AiTalker({
     token,
     accessKey,
     secretKey,
-    awsRegion = "us-east-1",
+    pollyAwsRegion = "eu-central-1",
     pollyVoice = "Lucia",
     pollyEngine = "neural",
     pollyLanguage = "es-ES",
+    transcribeAwsRegion = "eu-central-1",
     transcribeLanguage = "es-US",
     keepContext = false,
     defaultSpeech = "Hola!, mi nombre es Lucia. Soy tu nueva asistente virtual. ¿En qué puedo ayudarte hoy?",
@@ -52,7 +54,7 @@ function AiTalker({
 
     var pollySettings = {
         awsCredentials: awsCredentials,
-        awsRegion: awsRegion,
+        awsRegion: pollyAwsRegion,
         pollyEngine: pollyEngine,
         pollyVoiceId: pollyVoice,
         pollyLanguageCode: pollyLanguage,
@@ -61,7 +63,7 @@ function AiTalker({
 
     var transcribeSettings = {
         language: transcribeLanguage,
-        region: awsRegion,
+        region: transcribeAwsRegion,
         credentials: awsCredentials,
     };
 
