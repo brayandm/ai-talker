@@ -16,6 +16,7 @@ interface AiTalkerProps {
     pollyLanguage?: string;
     transcribeLanguage?: string;
     keepContext?: boolean;
+    defaultSpeech?: string;
 }
 
 function AiTalker({
@@ -28,6 +29,7 @@ function AiTalker({
     pollyLanguage = "es-ES",
     transcribeLanguage = "es-US",
     keepContext = false,
+    defaultSpeech = "Hola, soy tu asistente virtual. ¿En qué puedo ayudarte?",
 }: AiTalkerProps) {
     const talkerRef = useRef<HTMLParagraphElement>(null);
     const humanRef = useRef<HTMLParagraphElement>(null);
@@ -151,9 +153,18 @@ function AiTalker({
     const handleButtonClick = () => {
         if (!isStarted) {
             updateSpeaker(0, true);
-            setIsStarted(true);
-            setIsRecording(true);
             polly.setUpAnalyser(onPlaying);
+
+            const onSpeakEnd = () => {
+                setIsStarted(true);
+                setIsRecording(true);
+            };
+
+            polly.speak(defaultSpeech, false, onSpeakEnd);
+
+            if (keepContext) {
+                setChat([{ role: "assistant", content: defaultSpeech }]);
+            }
         } else {
             setIsStarted(false);
             setIsRecording(true);
