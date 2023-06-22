@@ -224,7 +224,7 @@ function AiTalker({
         const colorsBW = ["#c7c7c7", "#6d6d6d", "white"];
 
         if (isRecording) {
-            sizes[0] = 100;
+            sizes[0] = 80;
             sizes[1] = 30;
             sizes[2] = 0;
             if (upperCircle.current) {
