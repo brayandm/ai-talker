@@ -17,7 +17,7 @@ type SpeechCacheRecord = {
 
 class AwsPolly {
     settings: AwsPollySettings;
-    audioElement: HTMLAudioElement;
+    audioElement?: HTMLAudioElement;
     isSpeakingNow: boolean;
     playlist: {
         message: string;
@@ -35,8 +35,10 @@ class AwsPolly {
         this.settings = this.getValidatedSettings(settings);
 
         // Add audio node to html
-        this.audioElement = new Audio();
-        this.audioElement.load();
+        if (typeof window !== "undefined") {
+            this.audioElement = new Audio();
+            this.audioElement.load();
+        }
 
         // Set up audio player
         this.isSpeakingNow = false;
@@ -50,13 +52,13 @@ class AwsPolly {
             this.analyser = audioContext.createAnalyser();
             this.analyser.connect(audioContext.destination);
             this.source = audioContext.createMediaElementSource(
-                this.audioElement
+                this.audioElement!
             );
             this.source.connect(this.analyser);
         }
 
         if (this.isAnalyserSetUp) {
-            this.audioElement.removeEventListener(
+            this.audioElement!.removeEventListener(
                 "canplaythrough",
                 this.onAnalyserPlaying!
             );
@@ -66,7 +68,7 @@ class AwsPolly {
         };
 
         // async, wait for audio to load before connecting to audioContext
-        this.audioElement.addEventListener(
+        this.audioElement!.addEventListener(
             "canplaythrough",
             this.onAnalyserPlaying
         );
@@ -76,7 +78,7 @@ class AwsPolly {
 
     draw(onPlaying: (freq: number) => void) {
         var ID = requestAnimationFrame(this.draw.bind(this, onPlaying));
-        if (this.audioElement.paused) {
+        if (this.audioElement!.paused) {
             cancelAnimationFrame(ID);
             return;
         }
@@ -215,7 +217,7 @@ class AwsPolly {
     // Quit talking
     private stop() {
         this.isSpeakingNow = false;
-        this.audioElement.pause();
+        this.audioElement!.pause();
         this.playlist = [];
     }
 
@@ -344,12 +346,12 @@ class AwsPolly {
             var blob = new Blob([arrayBuffer]);
 
             var url = URL.createObjectURL(blob);
-            this.audioElement.src = url;
-            this.audioElement.addEventListener("ended", () => {
+            this.audioElement!.src = url;
+            this.audioElement!.addEventListener("ended", () => {
                 this.isSpeakingNow = false;
                 success("Success");
             });
-            this.audioElement.play();
+            this.audioElement!.play();
         });
     }
 }
