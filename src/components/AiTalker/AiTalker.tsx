@@ -5,6 +5,7 @@ import { AwsCredentialIdentity } from "@aws-sdk/types";
 import AwsPolly from "./lib/AwsPolly";
 import AwsTranscribe from "./lib/AwsTranscribe";
 import OpenAiGpt from "./lib/OpenAiGpt";
+import "./styles.css";
 
 interface AiTalkerProps {
     token: string;
@@ -105,7 +106,7 @@ function AiTalker({
                             { role: "assistant", content: speech },
                         ]);
                     }
-                    updateSpeaker(0, true);
+                    updateSpeaker(0, true, false, true);
                 };
 
                 const { onStream, onStreamEnd } = polly.speakStream(onSpeakEnd);
@@ -178,6 +179,7 @@ function AiTalker({
                 setIsStarted(true);
                 setIsRecording(true);
                 setFirstTime(false);
+                updateSpeaker(0, true, false, true);
             };
 
             if (firstTime) {
@@ -211,13 +213,28 @@ function AiTalker({
     function updateSpeaker(
         acum: number,
         easeTransition: boolean,
-        isDown: boolean = false
+        isDown: boolean = false,
+        isRecording: boolean = false
     ) {
         const refArray = [upperCircle, middleCircle, lowerCircle];
         const sizes = [100, 80, 60];
         const sizesBW = [70, 50, 30];
         const colors = ["#9bdbf6", "#15a0e8", "white"];
         const colorsBW = ["#c7c7c7", "#6d6d6d", "white"];
+
+        if (isRecording) {
+            sizes[0] = 100;
+            sizes[1] = 30;
+            sizes[2] = 0;
+            if (upperCircle.current) {
+                upperCircle.current.style.animation =
+                    "moveborders 5s infinite linear";
+            }
+        } else {
+            if (upperCircle.current) {
+                upperCircle.current.style.animation = "";
+            }
+        }
 
         for (let i = 0; i < refArray.length; i++) {
             const ref = refArray[i];
