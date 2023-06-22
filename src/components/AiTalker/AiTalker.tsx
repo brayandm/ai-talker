@@ -11,11 +11,11 @@ interface AiTalkerProps {
     token: string;
     accessKey: string;
     secretKey: string;
-    pollyAwsRegion: string;
+    pollyAwsRegion?: string;
     pollyVoice?: string;
     pollyEngine?: string;
     pollyLanguage?: string;
-    transcribeAwsRegion: string;
+    transcribeAwsRegion?: string;
     transcribeLanguage?: string;
     keepContext?: boolean;
     defaultSpeech?: string;
