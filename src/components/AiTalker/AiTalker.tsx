@@ -90,6 +90,7 @@ function AiTalker({
     const [isStarted, setIsStarted] = useState(false);
     const [chat, setChat] = useState<{ role: string; content: string }[]>([]);
     const [firstTime, setFirstTime] = useState(true);
+    const [isFirstSpeak, setIsFirstSpeak] = useState(false);
 
     useEffect(() => {
         if (isStarted) {
@@ -172,12 +173,14 @@ function AiTalker({
     };
 
     const handleButtonClick = () => {
-        if (!isStarted) {
+        if (!isStarted && !isFirstSpeak) {
+            setIsFirstSpeak(true);
             updateSpeaker(0, true);
             polly.setUpAnalyser(onPlaying);
 
             const onSpeakEnd = () => {
                 setIsStarted(true);
+                setIsFirstSpeak(false);
                 setIsRecording(true);
                 setFirstTime(false);
                 updateSpeaker(0, true, false, true);
@@ -200,6 +203,7 @@ function AiTalker({
             }
         } else {
             setIsStarted(false);
+            setIsFirstSpeak(false);
             setIsRecording(true);
             setChat([]);
             openai.stopGpt();
