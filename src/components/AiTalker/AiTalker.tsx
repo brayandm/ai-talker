@@ -146,6 +146,7 @@ function AiTalker({
                         updateSpeaker(0, true, true);
                     } else {
                         setIsRecording(false);
+                        updateSpeaker(0, true);
 
                         if (keepContext) {
                             setChat((prev) => [
