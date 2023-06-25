@@ -1,5 +1,4 @@
 type OpenAiGptSettings = {
-    authorization: string;
     preMessages?: { role: string; content: string }[];
 };
 class OpenAiGpt {
