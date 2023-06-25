@@ -8,7 +8,6 @@ import OpenAiGpt from "./lib/OpenAiGpt";
 import "./styles.css";
 
 interface AiTalkerProps {
-    token: string;
     accessKey: string;
     secretKey: string;
     pollyAwsRegion?: string;
@@ -23,7 +22,6 @@ interface AiTalkerProps {
 }
 
 function AiTalker({
-    token,
     accessKey,
     secretKey,
     pollyAwsRegion = "eu-central-1",
@@ -70,7 +68,6 @@ function AiTalker({
 
     const [openai] = useState<OpenAiGpt>(
         new OpenAiGpt({
-            authorization: token,
             preMessages: [
                 {
                     role: "system",
@@ -160,10 +157,13 @@ function AiTalker({
                     }
                 };
 
-                transcribe.startRecording(
-                    onTranscriptionDataReceived,
-                    onTimeout
-                );
+                onTranscriptionDataReceived("Hola como te llamas?");
+                onTimeout(false);
+
+                // transcribe.startRecording(
+                //     onTranscriptionDataReceived,
+                //     onTimeout
+                // );
             }
         }
     }, [isStarted, isRecording, polly, transcribe, openai, chat, keepContext]);
