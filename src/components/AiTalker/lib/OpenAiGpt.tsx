@@ -22,57 +22,37 @@ class OpenAiGpt {
     ) {
         this.stopStreamSignal = false;
 
-        const gpt = async () => {
-            const response = await fetch(
-                "https://api.openai.com/v1/chat/completions",
-                {
-                    method: "POST",
-                    headers: {
-                        Authorization: `Bearer ${this.settings.authorization}`,
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        model: "gpt-3.5-turbo",
-                        messages: this.settings.preMessages
-                            ? this.settings.preMessages.concat(messages)
-                            : messages,
-                        stream: true,
-                    }),
-                }
-            );
-            const reader = response.body
-                ?.pipeThrough(new TextDecoderStream())
-                .getReader();
-            if (!reader) return;
-            // eslint-disable-next-line no-constant-condition
-            while (true) {
-                // eslint-disable-next-line no-await-in-loop
-                const { value, done } = await reader.read();
-                if (done) break;
-                let dataDone = false;
-                const arr = value.split("\n");
-                arr.forEach((data) => {
-                    if (data.length === 0) return; // ignore empty message
-                    if (data.startsWith(":")) return; // ignore sse comment message
-                    if (data === "data: [DONE]") {
-                        dataDone = true;
-                        return;
-                    }
-                    const json = JSON.parse(data.substring(6));
-                    if (json.choices[0].delta.content) {
-                        if (this.stopStreamSignal) return;
-                        callback(json.choices[0].delta.content);
-                    }
-                });
-                if (dataDone || this.stopStreamSignal) {
-                    this.stopStreamSignal = false;
-                    onFinish();
-                    break;
-                }
+        const ws = new WebSocket("ws://127.0.0.1:8080/");
+
+        const onMessage = (data: string | null) => {
+            if (this.stopStreamSignal) return;
+            if (data) {
+                callback(data);
+            } else {
+                this.stopStreamSignal = false;
+                onFinish();
             }
         };
 
-        await gpt();
+        ws.onerror = console.error;
+
+        ws.onopen = () => {
+            ws.send(
+                JSON.stringify(
+                    this.settings.preMessages
+                        ? this.settings.preMessages.concat(messages)
+                        : messages
+                )
+            );
+        };
+
+        ws.onmessage = (message) => {
+            const response = JSON.parse(message.data.toString()) as {
+                data: string | null;
+            };
+
+            onMessage(response.data);
+        };
     }
 }
 
