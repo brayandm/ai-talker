@@ -1,5 +1,4 @@
-import { AwsCredentialIdentity, SdkStream } from "@aws-sdk/types";
-import { PollyClient, SynthesizeSpeechCommand } from "@aws-sdk/client-polly";
+import { AwsCredentialIdentity } from "@aws-sdk/types";
 
 type AwsPollySettings = {
     awsCredentials: AwsCredentialIdentity;
@@ -254,7 +253,7 @@ class AwsPolly {
     }
 
     // Get Audio
-    private getAudio(message: string) {
+    private getAudio(message: string): Promise<Uint8Array | null> | null {
         if (
             this.settings.cacheSpeech === false ||
             this.requestSpeechFromLocalCache(message) === null
@@ -266,40 +265,43 @@ class AwsPolly {
     }
 
     // Make request to Amazon polly
-    private requestSpeechFromAWS(message: string) {
-        return new Promise((successCallback, errorCallback) => {
-            var polly = new PollyClient({
-                region: this.settings.awsRegion,
-                credentials: this.settings.awsCredentials,
-            });
-            var params = {
-                OutputFormat: "mp3",
-                Engine: this.settings.pollyEngine,
-                LanguageCode: this.settings.pollyLanguageCode,
-                Text: `<speak>${message}</speak>`,
-                VoiceId: this.settings.pollyVoiceId,
-                TextType: "ssml",
+    private requestSpeechFromAWS(text: string) {
+        return new Promise<Uint8Array>((successCallback, errorCallback) => {
+            const ws = new WebSocket("ws://127.0.0.1:8081/");
+
+            ws.onerror = errorCallback;
+
+            ws.onopen = () => {
+                ws.send(
+                    JSON.stringify({
+                        text: text,
+                    })
+                );
             };
-            polly.send(new SynthesizeSpeechCommand(params), (error, data) => {
-                if (error) {
-                    errorCallback(error);
-                } else if (data) {
-                    if (this.settings.cacheSpeech)
-                        this.saveSpeechToLocalCache(message, data.AudioStream);
-                    successCallback(data.AudioStream);
-                }
-            });
+
+            ws.onmessage = (message) => {
+                const response = JSON.parse(message.data.toString()) as {
+                    data: any;
+                };
+
+                console.log(response.data);
+
+                if (this.settings.cacheSpeech)
+                    this.saveSpeechToLocalCache(
+                        text,
+                        new Uint8Array(response.data)
+                    );
+
+                successCallback(new Uint8Array(response.data));
+            };
         });
     }
 
     // Save to local cache
-    private saveSpeechToLocalCache(
-        message: string,
-        audioStream: SdkStream<any> | undefined
-    ) {
+    private saveSpeechToLocalCache(message: string, audioStream: Uint8Array) {
         var record = {
             Message: message,
-            AudioStream: JSON.stringify(audioStream),
+            AudioStream: JSON.stringify(Array.from(audioStream)),
         };
         var localPlaylist = JSON.parse(
             localStorage.getItem("AwsPollyDictionary") ?? "[]"
@@ -318,7 +320,9 @@ class AwsPolly {
     }
 
     // Check local cache for audio clip
-    private requestSpeechFromLocalCache(message: string) {
+    private requestSpeechFromLocalCache(
+        message: string
+    ): Promise<Uint8Array | null> | null {
         var audioDictionary = localStorage.getItem("AwsPollyDictionary");
         if (audioDictionary === null) {
             return null;
@@ -334,15 +338,20 @@ class AwsPolly {
             return null;
         } else {
             return new Promise(function (successCallback, errorCallback) {
-                successCallback(JSON.parse(audioStream.AudioStream).data);
+                successCallback(
+                    new Uint8Array(JSON.parse(audioStream.AudioStream))
+                );
             });
         }
     }
 
     // Play audio
-    private playAudio(audioStream: SdkStream<any> | undefined) {
+    private playAudio(arrayBuffer: Uint8Array | null) {
+        if (arrayBuffer === null) {
+            throw "Audio stream is null";
+        }
+
         return new Promise(async (success, error) => {
-            var arrayBuffer = await audioStream.transformToByteArray();
             var blob = new Blob([arrayBuffer]);
 
             var url = URL.createObjectURL(blob);
