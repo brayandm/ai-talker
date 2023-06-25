@@ -10,9 +10,7 @@ import "./styles.css";
 interface AiTalkerProps {
     accessKey: string;
     secretKey: string;
-    pollyAwsRegion?: string;
     pollyVoice?: string;
-    pollyEngine?: string;
     pollyLanguage?: string;
     transcribeAwsRegion?: string;
     transcribeLanguage?: string;
@@ -24,14 +22,12 @@ interface AiTalkerProps {
 function AiTalker({
     accessKey,
     secretKey,
-    pollyAwsRegion = "eu-central-1",
     pollyVoice = "Lucia",
-    pollyEngine = "neural",
     pollyLanguage = "es-ES",
     transcribeAwsRegion = "eu-central-1",
     transcribeLanguage = "es-US",
     keepContext = false,
-    defaultSpeech = "Hola!, mi nombre es Lucia. Soy tu nueva asistente virtual. ¿En qué puedo ayudarte hoy?",
+    defaultSpeech = "Hola que tal!",
     defaultQuestions = [
         "¿En qué puedo ayudarte hoy?",
         "¿Qué puedo hacer por ti?",
@@ -52,9 +48,6 @@ function AiTalker({
     } as AwsCredentialIdentity;
 
     var pollySettings = {
-        awsCredentials: awsCredentials,
-        awsRegion: pollyAwsRegion,
-        pollyEngine: pollyEngine,
         pollyVoiceId: pollyVoice,
         pollyLanguageCode: pollyLanguage,
         cacheSpeech: false,

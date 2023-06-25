@@ -1,9 +1,4 @@
-import { AwsCredentialIdentity } from "@aws-sdk/types";
-
 type AwsPollySettings = {
-    awsCredentials: AwsCredentialIdentity;
-    awsRegion: string;
-    pollyEngine: string;
     pollyLanguageCode: string;
     pollyVoiceId: string;
     cacheSpeech: boolean;
@@ -188,18 +183,6 @@ class AwsPolly {
     private getValidatedSettings(settings: AwsPollySettings) {
         if (typeof settings === "undefined") {
             throw "Settings must be provided to ChattyKathy's constructor";
-        }
-        if (typeof settings.awsCredentials === "undefined") {
-            throw "A valid AWS Credentials object must be provided";
-        }
-        if (
-            typeof settings.awsRegion === "undefined" ||
-            settings.awsRegion.length < 1
-        ) {
-            throw "A valid AWS Region must be provided";
-        }
-        if (typeof settings.pollyEngine === "undefined") {
-            settings.pollyEngine = "standard";
         }
         if (typeof settings.pollyLanguageCode === "undefined") {
             settings.pollyLanguageCode = "en-US";
