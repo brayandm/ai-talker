@@ -258,6 +258,8 @@ class AwsPolly {
                 ws.send(
                     JSON.stringify({
                         text: text,
+                        languageCode: this.settings.pollyLanguageCode,
+                        voiceId: this.settings.pollyVoiceId,
                     })
                 );
             };
