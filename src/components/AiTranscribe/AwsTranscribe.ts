@@ -14,9 +14,12 @@ type AwsTranscribeSettings = {
 
 class AwsTranscribe {
     SAMPLE_RATE = 44100;
+    TIME_OUT = 1000;
+    TIME_TO_SLEEP = 5000;
     microphoneStream: MicrophoneStream | undefined;
     transcribeClient: TranscribeStreamingClient | undefined;
     settings: AwsTranscribeSettings;
+    timeoutId: NodeJS.Timeout | undefined;
 
     constructor(settings: AwsTranscribeSettings) {
         this.settings = settings;
@@ -39,7 +42,10 @@ class AwsTranscribe {
         );
     }
 
-    async startRecording(callback: (data: string) => void) {
+    async startRecording(
+        callback: (data: string) => void,
+        onTimeout: (isAsleep: boolean) => void = () => {}
+    ) {
         if (!this.settings.language) {
             return false;
         }
@@ -48,10 +54,12 @@ class AwsTranscribe {
         }
         this.createTranscribeClient(this.settings);
         this.createMicrophoneStream();
-        await this.startStreaming(this.settings.language, callback);
+        await this.startStreaming(this.settings.language, callback, onTimeout);
     }
 
     stopRecording() {
+        if (this.timeoutId) clearTimeout(this.timeoutId);
+
         if (this.microphoneStream) {
             this.microphoneStream.stop();
             (this.microphoneStream as any).destroy();
@@ -63,7 +71,17 @@ class AwsTranscribe {
         }
     }
 
-    async startStreaming(language: string, callback: (data: string) => void) {
+    async startStreaming(
+        language: string,
+        callback: (data: string) => void,
+        onTimeout: (isAsleep: boolean) => void = () => {}
+    ) {
+        if (this.timeoutId) clearTimeout(this.timeoutId);
+
+        this.timeoutId = setTimeout(() => {
+            onTimeout(true);
+        }, this.TIME_TO_SLEEP);
+
         const command = new StartStreamTranscriptionCommand({
             LanguageCode: language,
             MediaEncoding: "pcm",
@@ -86,6 +104,12 @@ class AwsTranscribe {
                     const noOfResults = data.length;
 
                     for (let i = 0; i < noOfResults; i++) {
+                        if (this.timeoutId) clearTimeout(this.timeoutId);
+
+                        this.timeoutId = setTimeout(() => {
+                            onTimeout(false);
+                        }, this.TIME_OUT);
+
                         callback(data[i].Content + " ");
                     }
                 }
