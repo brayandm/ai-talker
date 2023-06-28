@@ -64,6 +64,14 @@ class AwsTranscribe {
         ws.onerror = console.error;
 
         ws.onopen = async () => {
+            ws.send(
+                JSON.stringify({
+                    setup: {
+                        language: language,
+                    },
+                })
+            );
+
             for await (const chunk of this.getAudioStream()) {
                 ws.send(
                     JSON.stringify({
