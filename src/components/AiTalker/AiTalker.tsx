@@ -277,8 +277,8 @@ function AiTalker({
             </div>
             {/* <button onClick={handleButtonClick}>Start</button>
             <button onClick={handleButtonClickStop}>stop</button> */}
-            {/* <p ref={talkerRef} />
-            <p ref={humanRef} /> */}
+            <p ref={talkerRef} />
+            <p ref={humanRef} />
         </div>
     );
 }

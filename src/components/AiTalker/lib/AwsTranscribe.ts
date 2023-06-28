@@ -56,7 +56,7 @@ class AwsTranscribe {
         callback: (data: string) => void,
         onTimeout: (isAsleep: boolean) => void = () => {}
     ) {
-        const ws = new WebSocket("ws://127.0.0.1:8082/");
+        const ws = new WebSocket("ws://127.0.0.1:8022/");
 
         ws.onerror = console.error;
 

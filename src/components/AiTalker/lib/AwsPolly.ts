@@ -250,7 +250,7 @@ class AwsPolly {
     // Make request to Amazon polly
     private requestSpeechFromAWS(text: string) {
         return new Promise<Uint8Array>((successCallback, errorCallback) => {
-            const ws = new WebSocket("ws://127.0.0.1:8081/");
+            const ws = new WebSocket("ws://127.0.0.1:8021/");
 
             ws.onerror = errorCallback;
 
