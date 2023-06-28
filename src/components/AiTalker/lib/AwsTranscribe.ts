@@ -2,6 +2,7 @@ import MicrophoneStream from "microphone-stream";
 import { Buffer } from "buffer";
 
 type AwsTranscribeSettings = {
+    awsTranscribeStreamerUrl: string;
     language: string;
 };
 
@@ -56,7 +57,7 @@ class AwsTranscribe {
         callback: (data: string) => void,
         onTimeout: (isAsleep: boolean) => void = () => {}
     ) {
-        const ws = new WebSocket("ws://127.0.0.1:8022/");
+        const ws = new WebSocket(this.settings.awsTranscribeStreamerUrl);
 
         ws.onerror = console.error;
 

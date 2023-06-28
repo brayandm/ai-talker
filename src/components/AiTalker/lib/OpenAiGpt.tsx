@@ -1,4 +1,5 @@
 type OpenAiGptSettings = {
+    openAiGptStreamerUrl: string;
     preMessages?: { role: string; content: string }[];
 };
 class OpenAiGpt {
@@ -21,7 +22,7 @@ class OpenAiGpt {
     ) {
         this.stopStreamSignal = false;
 
-        const ws = new WebSocket("ws://127.0.0.1:8020/");
+        const ws = new WebSocket(this.settings.openAiGptStreamerUrl);
 
         const onMessage = (data: string | null) => {
             if (this.stopStreamSignal) return;

@@ -1,4 +1,5 @@
 type AwsPollySettings = {
+    awsPollyStreamerUrl: string;
     pollyLanguageCode: string;
     pollyVoiceId: string;
     cacheSpeech: boolean;
@@ -250,7 +251,7 @@ class AwsPolly {
     // Make request to Amazon polly
     private requestSpeechFromAWS(text: string) {
         return new Promise<Uint8Array>((successCallback, errorCallback) => {
-            const ws = new WebSocket("ws://127.0.0.1:8021/");
+            const ws = new WebSocket(this.settings.awsPollyStreamerUrl);
 
             ws.onerror = errorCallback;
 

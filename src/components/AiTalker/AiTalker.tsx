@@ -7,6 +7,9 @@ import OpenAiGpt from "./lib/OpenAiGpt";
 import "./styles.css";
 
 interface AiTalkerProps {
+    openAiGptStreamerUrl: string;
+    awsPollyStreamerUrl: string;
+    awsTranscribeStreamerUrl: string;
     pollyVoice?: string;
     pollyLanguage?: string;
     transcribeLanguage?: string;
@@ -16,6 +19,9 @@ interface AiTalkerProps {
 }
 
 function AiTalker({
+    openAiGptStreamerUrl,
+    awsPollyStreamerUrl,
+    awsTranscribeStreamerUrl,
     pollyVoice = "Lucia",
     pollyLanguage = "es-ES",
     transcribeLanguage = "es-US",
@@ -36,17 +42,20 @@ function AiTalker({
     const lowerCircle = useRef<HTMLDivElement>(null);
 
     var pollySettings = {
+        awsPollyStreamerUrl: awsPollyStreamerUrl,
         pollyVoiceId: pollyVoice,
         pollyLanguageCode: pollyLanguage,
         cacheSpeech: false,
     };
 
     var transcribeSettings = {
+        awsTranscribeStreamerUrl: awsTranscribeStreamerUrl,
         language: transcribeLanguage,
     };
 
     const [openai] = useState<OpenAiGpt>(
         new OpenAiGpt({
+            openAiGptStreamerUrl: openAiGptStreamerUrl,
             preMessages: [
                 {
                     role: "system",
