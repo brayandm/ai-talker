@@ -20,7 +20,7 @@ function AiTalker({
     pollyLanguage = "es-ES",
     transcribeLanguage = "es-US",
     keepContext = false,
-    defaultSpeech = "Hola que tal!",
+    defaultSpeech = "Hola!, mi nombre es Lucia. Soy tu nueva asistente virtual. ¿En qué puedo ayudarte hoy?",
     defaultQuestions = [
         "¿En qué puedo ayudarte hoy?",
         "¿Qué puedo hacer por ti?",
