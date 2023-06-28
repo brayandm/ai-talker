@@ -1,11 +1,8 @@
 import MicrophoneStream from "microphone-stream";
 import { Buffer } from "buffer";
-import { AwsCredentialIdentity } from "@aws-sdk/types";
 
 type AwsTranscribeSettings = {
     language: string;
-    region: string;
-    credentials: AwsCredentialIdentity;
 };
 
 class AwsTranscribe {

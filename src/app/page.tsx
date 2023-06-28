@@ -3,12 +3,7 @@ import AiSpeaker from "@/components/AiSpeaker";
 import AiTranscribe from "@/components/AiTranscribe";
 
 export default function Home() {
-    // return (
-    //     <AiTalker
-    //         accessKey={process.env.AWS_ACCESS_KEY!}
-    //         secretKey={process.env.AWS_SECRET_KEY!}
-    //     />
-    // );
+    return <AiTalker />;
     // return (
     //     <AiSpeaker
     //         accessKey={process.env.AWS_ACCESS_KEY!}

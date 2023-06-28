@@ -1,18 +1,14 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { AwsCredentialIdentity } from "@aws-sdk/types";
 import AwsPolly from "./lib/AwsPolly";
 import AwsTranscribe from "./lib/AwsTranscribe";
 import OpenAiGpt from "./lib/OpenAiGpt";
 import "./styles.css";
 
 interface AiTalkerProps {
-    accessKey: string;
-    secretKey: string;
     pollyVoice?: string;
     pollyLanguage?: string;
-    transcribeAwsRegion?: string;
     transcribeLanguage?: string;
     keepContext?: boolean;
     defaultSpeech?: string;
@@ -20,11 +16,8 @@ interface AiTalkerProps {
 }
 
 function AiTalker({
-    accessKey,
-    secretKey,
     pollyVoice = "Lucia",
     pollyLanguage = "es-ES",
-    transcribeAwsRegion = "eu-central-1",
     transcribeLanguage = "es-US",
     keepContext = false,
     defaultSpeech = "Hola que tal!",
@@ -42,11 +35,6 @@ function AiTalker({
     const middleCircle = useRef<HTMLDivElement>(null);
     const lowerCircle = useRef<HTMLDivElement>(null);
 
-    var awsCredentials = {
-        accessKeyId: accessKey,
-        secretAccessKey: secretKey,
-    } as AwsCredentialIdentity;
-
     var pollySettings = {
         pollyVoiceId: pollyVoice,
         pollyLanguageCode: pollyLanguage,
@@ -55,8 +43,6 @@ function AiTalker({
 
     var transcribeSettings = {
         language: transcribeLanguage,
-        region: transcribeAwsRegion,
-        credentials: awsCredentials,
     };
 
     const [openai] = useState<OpenAiGpt>(
@@ -150,13 +136,10 @@ function AiTalker({
                     }
                 };
 
-                onTranscriptionDataReceived("Hola como te llamas?");
-                onTimeout(false);
-
-                // transcribe.startRecording(
-                //     onTranscriptionDataReceived,
-                //     onTimeout
-                // );
+                transcribe.startRecording(
+                    onTranscriptionDataReceived,
+                    onTimeout
+                );
             }
         }
     }, [isStarted, isRecording, polly, transcribe, openai, chat, keepContext]);
