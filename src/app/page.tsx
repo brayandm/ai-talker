@@ -16,10 +16,10 @@ export default function Home() {
     //         secretKey={process.env.AWS_SECRET_KEY!}
     //     />
     // );
-    return (
-        <AiTranscribe
-            accessKey={process.env.AWS_ACCESS_KEY!}
-            secretKey={process.env.AWS_SECRET_KEY!}
-        />
-    );
+    // return (
+    //     <AiTranscribe
+    //         accessKey={process.env.AWS_ACCESS_KEY!}
+    //         secretKey={process.env.AWS_SECRET_KEY!}
+    //     />
+    // );
 }
