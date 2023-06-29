@@ -267,7 +267,7 @@ function AiTalker({
 
     return (
         <div>
-            <div style={getStyles(300, "white")}>
+            <div style={getStyles(300, "transparent")}>
                 <div
                     ref={upperCircle}
                     style={getStyles(70, "#c7c7c7", true)}
@@ -286,8 +286,8 @@ function AiTalker({
             </div>
             {/* <button onClick={handleButtonClick}>Start</button>
             <button onClick={handleButtonClickStop}>stop</button> */}
-            <p ref={talkerRef} />
-            <p ref={humanRef} />
+            {/* <p ref={talkerRef} />
+            <p ref={humanRef} /> */}
         </div>
     );
 }
