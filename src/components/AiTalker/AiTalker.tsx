@@ -1,21 +1,17 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { AwsCredentialIdentity } from "@aws-sdk/types";
 import AwsPolly from "./lib/AwsPolly";
 import AwsTranscribe from "./lib/AwsTranscribe";
 import OpenAiGpt from "./lib/OpenAiGpt";
 import "./styles.css";
 
 interface AiTalkerProps {
-    token: string;
-    accessKey: string;
-    secretKey: string;
-    pollyAwsRegion?: string;
+    openAiGptStreamerUrl: string;
+    awsPollyStreamerUrl: string;
+    awsTranscribeStreamerUrl: string;
     pollyVoice?: string;
-    pollyEngine?: string;
     pollyLanguage?: string;
-    transcribeAwsRegion?: string;
     transcribeLanguage?: string;
     keepContext?: boolean;
     defaultSpeech?: string;
@@ -23,14 +19,11 @@ interface AiTalkerProps {
 }
 
 function AiTalker({
-    token,
-    accessKey,
-    secretKey,
-    pollyAwsRegion = "eu-central-1",
+    openAiGptStreamerUrl,
+    awsPollyStreamerUrl,
+    awsTranscribeStreamerUrl,
     pollyVoice = "Lucia",
-    pollyEngine = "neural",
     pollyLanguage = "es-ES",
-    transcribeAwsRegion = "eu-central-1",
     transcribeLanguage = "es-US",
     keepContext = false,
     defaultSpeech = "Hola!, mi nombre es Lucia. Soy tu nueva asistente virtual. ¿En qué puedo ayudarte hoy?",
@@ -48,29 +41,21 @@ function AiTalker({
     const middleCircle = useRef<HTMLDivElement>(null);
     const lowerCircle = useRef<HTMLDivElement>(null);
 
-    var awsCredentials = {
-        accessKeyId: accessKey,
-        secretAccessKey: secretKey,
-    } as AwsCredentialIdentity;
-
     var pollySettings = {
-        awsCredentials: awsCredentials,
-        awsRegion: pollyAwsRegion,
-        pollyEngine: pollyEngine,
+        awsPollyStreamerUrl: awsPollyStreamerUrl,
         pollyVoiceId: pollyVoice,
         pollyLanguageCode: pollyLanguage,
         cacheSpeech: false,
     };
 
     var transcribeSettings = {
+        awsTranscribeStreamerUrl: awsTranscribeStreamerUrl,
         language: transcribeLanguage,
-        region: transcribeAwsRegion,
-        credentials: awsCredentials,
     };
 
     const [openai] = useState<OpenAiGpt>(
         new OpenAiGpt({
-            authorization: token,
+            openAiGptStreamerUrl: openAiGptStreamerUrl,
             preMessages: [
                 {
                     role: "system",
@@ -282,7 +267,7 @@ function AiTalker({
 
     return (
         <div>
-            <div style={getStyles(300, "white")}>
+            <div style={getStyles(300, "transparent")}>
                 <div
                     ref={upperCircle}
                     style={getStyles(70, "#c7c7c7", true)}

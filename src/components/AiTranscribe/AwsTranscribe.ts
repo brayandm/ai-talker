@@ -1,7 +1,3 @@
-import {
-    StartStreamTranscriptionCommand,
-    TranscribeStreamingClient,
-} from "@aws-sdk/client-transcribe-streaming";
 import MicrophoneStream from "microphone-stream";
 import { Buffer } from "buffer";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
@@ -14,19 +10,14 @@ type AwsTranscribeSettings = {
 
 class AwsTranscribe {
     SAMPLE_RATE = 44100;
+    TIME_OUT = 1000;
+    TIME_TO_SLEEP = 5000;
     microphoneStream: MicrophoneStream | undefined;
-    transcribeClient: TranscribeStreamingClient | undefined;
     settings: AwsTranscribeSettings;
+    timeoutId: NodeJS.Timeout | undefined;
 
     constructor(settings: AwsTranscribeSettings) {
         this.settings = settings;
-    }
-
-    createTranscribeClient(settings: AwsTranscribeSettings) {
-        this.transcribeClient = new TranscribeStreamingClient({
-            region: settings.region,
-            credentials: settings.credentials,
-        });
     }
 
     async createMicrophoneStream() {
@@ -39,58 +30,71 @@ class AwsTranscribe {
         );
     }
 
-    async startRecording(callback: (data: string) => void) {
+    async startRecording(
+        callback: (data: string) => void,
+        onTimeout: (isAsleep: boolean) => void = () => {}
+    ) {
         if (!this.settings.language) {
             return false;
         }
-        if (this.microphoneStream || this.transcribeClient) {
+        if (this.microphoneStream) {
             this.stopRecording();
         }
-        this.createTranscribeClient(this.settings);
         this.createMicrophoneStream();
-        await this.startStreaming(this.settings.language, callback);
+        await this.startStreaming(this.settings.language, callback, onTimeout);
     }
 
     stopRecording() {
+        if (this.timeoutId) clearTimeout(this.timeoutId);
+
         if (this.microphoneStream) {
             this.microphoneStream.stop();
             (this.microphoneStream as any).destroy();
             this.microphoneStream = undefined;
         }
-        if (this.transcribeClient) {
-            this.transcribeClient.destroy();
-            this.transcribeClient = undefined;
-        }
     }
 
-    async startStreaming(language: string, callback: (data: string) => void) {
-        const command = new StartStreamTranscriptionCommand({
-            LanguageCode: language,
-            MediaEncoding: "pcm",
-            MediaSampleRateHertz: this.SAMPLE_RATE,
-            AudioStream: this.getAudioStream(),
-        });
+    startStreaming(
+        language: string,
+        callback: (data: string) => void,
+        onTimeout: (isAsleep: boolean) => void = () => {}
+    ) {
+        const ws = new WebSocket("ws://127.0.0.1:8082/");
 
-        const data = await this.transcribeClient?.send(command);
+        ws.onerror = console.error;
 
-        for await (const event of data?.TranscriptResultStream || []) {
-            for (const result of event.TranscriptEvent?.Transcript?.Results ||
-                []) {
-                if (result.IsPartial === false) {
-                    const data = result.Alternatives
-                        ? result.Alternatives[0].Items
-                            ? result.Alternatives[0].Items
-                            : []
-                        : [];
+        ws.onopen = async () => {
+            ws.send(
+                JSON.stringify({
+                    setup: {
+                        language: language,
+                    },
+                })
+            );
 
-                    const noOfResults = data.length;
-
-                    for (let i = 0; i < noOfResults; i++) {
-                        callback(data[i].Content + " ");
-                    }
-                }
+            for await (const chunk of this.getAudioStream()) {
+                ws.send(
+                    JSON.stringify({
+                        AudioEvent: {
+                            AudioChunk: Array.from(chunk.AudioEvent.AudioChunk),
+                        },
+                    })
+                );
             }
-        }
+        };
+
+        ws.onmessage = (message) => {
+            const transcription = JSON.parse(message.data) as {
+                data: string;
+                isAsleep: boolean;
+            };
+
+            if (transcription.data) {
+                callback(transcription.data);
+            } else {
+                onTimeout(transcription.isAsleep);
+            }
+        };
     }
 
     async *getAudioStream() {

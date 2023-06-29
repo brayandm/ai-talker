@@ -21,6 +21,10 @@ function AiTranscribe({ accessKey, secretKey }: AiTranscribeProps) {
         }
     };
 
+    const onTimeout = (isAsleep: boolean) => {
+        console.log("onTimeout", isAsleep);
+    };
+
     const TranscribeClient = new AwsTranscribe({
         language: "es-US",
         region: "us-east-1",
@@ -28,7 +32,7 @@ function AiTranscribe({ accessKey, secretKey }: AiTranscribeProps) {
     });
 
     const handleButtonClick = async () => {
-        TranscribeClient.startRecording(onTranscriptionDataReceived);
+        TranscribeClient.startRecording(onTranscriptionDataReceived, onTimeout);
     };
 
     const handleStop = async () => {
