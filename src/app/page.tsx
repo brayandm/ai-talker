@@ -11,15 +11,9 @@ export default function Home() {
         />
     );
     // return (
-    //     <AiSpeaker
-    //         accessKey={process.env.AWS_ACCESS_KEY!}
-    //         secretKey={process.env.AWS_SECRET_KEY!}
-    //     />
+    //     <AiSpeaker/>
     // );
     // return (
-    //     <AiTranscribe
-    //         accessKey={process.env.AWS_ACCESS_KEY!}
-    //         secretKey={process.env.AWS_SECRET_KEY!}
-    //     />
+    //     <AiTranscribe/>
     // );
 }
